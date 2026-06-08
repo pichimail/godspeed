@@ -3,22 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-visual">
-<title>Odysseus — Login</title>
+<title>GodSpeed — Login</title>
 <script nonce="{{CSP_NONCE}}">
 (function(){
   // Per-theme bg-effect defaults — mirrors THEME_DEFAULT_* maps in
   // static/js/theme.js so login picks the same default pattern as the
   // main app for users who never explicitly chose one.
   var THEME_DEFAULT_PATTERN = {
-    dark:'none', light:'dots', midnight:'rain', paper:'dots',
+    godspeed:'synapse', dark:'synapse', light:'dots', midnight:'none', paper:'dots',
     cyberpunk:'synapse', retrowave:'embers', forest:'petals',
-    ocean:'constellations', terminal:'perlin-flow', organs:'rain',
+    ocean:'constellations', terminal:'perlin-flow', organs:'none',
     ume:'petals', cute:'sparkles'
   };
   var THEME_DEFAULT_EFFECT_COLOR = {
-    midnight:'#ffffff', organs:'#451616', cute:'#ff8cb8', ume:'#f5a0c0'
+    godspeed:'#4ee7ff', dark:'#4ee7ff', midnight:'#ffffff', organs:'#451616', cute:'#ff8cb8', ume:'#f5a0c0'
   };
-  var THEME_DEFAULT_INTENSITY = { midnight:0.5, terminal:0.8, organs:0.65 };
+  var THEME_DEFAULT_INTENSITY = { godspeed:0.65, dark:0.65, midnight:0.5, terminal:0.8, organs:0.65 };
   try {
     var t = JSON.parse(localStorage.getItem('odysseus-theme'));
     var s = document.documentElement.style;
@@ -36,6 +36,11 @@
       // every customization the user has on their theme instead of falling
       // back to defaults that didn't match the main app.
       var a = c.advanced || {};
+      var accent = (a.accentPrimary || a.brandColor) || c.red;
+      if (accent) {
+        s.setProperty('--accent', accent);
+        s.setProperty('--color-accent', accent);
+      }
       var ADV = {
         userBubbleBg:    '--user-bubble-bg',
         aiBubbleBg:      '--ai-bubble-bg',
@@ -50,10 +55,11 @@
         codeBg:          '--code-bg',
         codeFg:          '--code-fg',
         toggleActive:    '--toggle-active',
+        accentPrimary:   '--accent-primary',
       };
       for (var k in ADV) { if (a[k]) s.setProperty(ADV[k], a[k]); }
     }
-    // Background effect — pick ONE at random from the main app's 8
+    // Background effect — pick ONE at random from the main app's non-rain
     // patterns each load (matches the old login behavior, but uses the
     // same effect implementations the main theme system exposes so the
     // login feels consistent with the rest of the app). Per-theme
@@ -61,7 +67,7 @@
     // pattern picks up theme-appropriate tinting.
     var name = (t && t.name) || '';
     // perlin-flow excluded — too visually intense for a login screen.
-    var PATTERNS = ['dots','synapse','rain','constellations','petals','sparkles','embers'];
+    var PATTERNS = ['dots','synapse','constellations','petals','sparkles','embers'];
     var pattern = PATTERNS[Math.floor(Math.random() * PATTERNS.length)];
     var effColor = (t && t.bgEffectColor) || THEME_DEFAULT_EFFECT_COLOR[name] || '';
     var effInt = (t && t.bgEffectIntensity !== undefined)
@@ -89,8 +95,11 @@
      localStorage — renders the login page in the same palette as the rest
      of the app instead of a different greys+offwhite scheme. */
   :root {
-    --bg: #282c34; --fg: #9cdef2; --panel: #111; --border: #355a66;
-    --red: #e06c75; --green: #50fa7b;
+    --bg: #070b16; --fg: #eff7ff; --panel: #101827; --border: #3e536f;
+    --red: #ffb547; --green: #50fa7b; --accent: #4ee7ff; --brand-color: #4ee7ff;
+    --surface-hover: #1d2b43;
+    --focus-ring: color-mix(in srgb, var(--accent) 58%, transparent);
+    --ease-smooth: cubic-bezier(0.22, 0.61, 0.36, 1);
     --bg-effect-intensity: 1;
   }
   /* Background patterns — mirrors static/style.css "Background Patterns"
@@ -113,19 +122,24 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Fira Code', monospace;
-    background: var(--bg); color: var(--fg);
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 18% 12%, color-mix(in srgb, var(--accent) 12%, transparent) 0, transparent 26%),
+      linear-gradient(180deg, color-mix(in srgb, #172235 30%, transparent), transparent 38%);
+    color: var(--fg);
     display: flex; justify-content: center; align-items: flex-start;
     min-height: 100vh; min-height: 100dvh;
     padding-top: 15vh;
     transition: padding-top 0.2s ease;
   }
   .card {
-    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    background: color-mix(in srgb, var(--panel) 94%, var(--bg)); border: 1px solid var(--border); border-radius: 12px;
     padding: 2rem; width: 360px; max-width: 90vw;
     /* Sit above the bg-effect canvases (which spawn at z-index:0) so the
        falling rain / drifting petals / etc. don't streak across the
        login form. */
     position: relative; z-index: 1;
+    box-shadow: 0 22px 60px rgba(0, 0, 0, 0.42), inset 0 1px 0 color-mix(in srgb, var(--fg) 8%, transparent);
   }
   .logo {
     text-align: center; margin-bottom: 1.5rem;
@@ -134,22 +148,24 @@
     font-family: 'Fira Code', monospace;
     font-size: 2rem; font-weight: 600;
     letter-spacing: 0.04em;
-    /* Same gradient as the main app's welcome-screen "Odysseus" title
+    /* Same gradient as the main app's welcome-screen "GodSpeed" title
        (static/style.css #welcome-screen .welcome-name) so the brand
        wordmark is consistent across login + first-launch screens. */
-    background: linear-gradient(135deg, var(--brand-color, var(--red)), color-mix(in srgb, var(--brand-color, var(--red)) 60%, var(--fg)));
+    background: linear-gradient(135deg, var(--brand-color, var(--accent)), var(--red) 52%, color-mix(in srgb, var(--fg) 82%, var(--accent)));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  .setup-note { color: color-mix(in srgb, var(--fg) 60%, transparent); font-size: 0.8rem; margin-bottom: 1rem; text-align: center; }
-  label { display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: color-mix(in srgb, var(--fg) 65%, transparent); }
+  .setup-note { color: color-mix(in srgb, var(--fg) 74%, transparent); font-size: 0.8rem; margin-bottom: 1rem; text-align: center; }
+  label { display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: color-mix(in srgb, var(--fg) 78%, transparent); }
   input:not(.remember-check) {
     width: 100%; padding: 0.6rem 0.8rem; margin-bottom: 1rem;
-    background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+    background: color-mix(in srgb, var(--panel) 82%, var(--bg)); border: 1px solid var(--border); border-radius: 6px;
     color: var(--fg); font-size: 0.95rem; font-family: 'Fira Code', monospace;
+    transition: background 180ms var(--ease-smooth), border-color 180ms var(--ease-smooth), box-shadow 180ms var(--ease-smooth);
   }
-  input:focus { outline: none; border-color: var(--red); }
+  input:not(.remember-check):hover { border-color: color-mix(in srgb, var(--accent) 58%, var(--border)); background: var(--surface-hover); }
+  input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--focus-ring); }
   /* On touch devices keep inputs at >=16px so iOS Safari doesn't zoom the whole
      page when a field is focused (it auto-zooms any focused input under 16px).
      This page has its own inline styles, so it doesn't inherit the main app's
@@ -160,8 +176,9 @@
   }
   /* Clear, visible focus ring for keyboard users on every focusable control. */
   input:focus-visible, a:focus-visible, button:focus-visible {
-    outline: 2px solid var(--red);
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
+    box-shadow: 0 0 0 5px var(--focus-ring);
   }
   button {
     width: 100%;
@@ -169,16 +186,16 @@
        the button's total height the same as 0.7rem all-around. */
     padding: calc(0.7rem + 1px) 0.7rem calc(0.7rem - 1px);
     border: none; border-radius: 6px;
-    /* Darken the brand red slightly so #fff label text clears the WCAG AA
-       4.5:1 contrast threshold (plain --red #e06c75 only reaches ~3.2:1). */
-    background: color-mix(in srgb, var(--red) 78%, #000); color: #fff; font-size: 1rem; cursor: pointer;
+    background: var(--accent); color: #06111c; font-size: 1rem; cursor: pointer;
     font-weight: 600; font-family: 'Fira Code', monospace;
+    box-shadow: 0 12px 30px color-mix(in srgb, var(--accent) 28%, transparent);
+    transition: background 180ms var(--ease-smooth), color 180ms var(--ease-smooth), transform 180ms var(--ease-smooth), box-shadow 180ms var(--ease-smooth);
   }
-  button:hover { background: color-mix(in srgb, var(--red) 66%, black); }
+  button:hover { background: color-mix(in srgb, var(--accent) 82%, white); transform: translateY(-1px); box-shadow: 0 16px 36px color-mix(in srgb, var(--accent) 34%, transparent); }
   button:disabled { opacity: 0.5; cursor: not-allowed; }
   .error { color: #e55; font-size: 0.85rem; margin-bottom: 0.75rem; display: none; }
   .toggle { text-align: center; margin-top: calc(1rem + 4px); font-size: 0.85rem; color: color-mix(in srgb, var(--fg) 50%, transparent); }
-  .toggle a { color: var(--red); cursor: pointer; text-decoration: none; }
+  .toggle a { color: var(--accent); cursor: pointer; text-decoration: none; }
   .toggle a:hover { text-decoration: underline; }
   .pw-wrapper { position: relative; margin-bottom: 1rem; }
   .pw-wrapper input:not(.remember-check) { padding-right: 2.5rem; margin-bottom: 0; }
@@ -191,7 +208,12 @@
     color: color-mix(in srgb, var(--fg) 40%, transparent); width: auto;
     display: flex; align-items: center; justify-content: center;
   }
-  .pw-toggle:hover { color: var(--fg); background: none; }
+  .pw-toggle:hover {
+    color: var(--fg);
+    background: none;
+    transform: translateY(calc(-50% + 1px));
+    box-shadow: none;
+  }
   .pw-toggle svg { display: block; }
   .remember-toggle {
     position: absolute !important; right: 13px; top: 50%; transform: translateY(-50%);
@@ -199,6 +221,10 @@
     width: 14px !important; height: 14px !important; display: flex !important;
     align-items: center; justify-content: center;
     font-size: 0; margin: 0; color: transparent;
+  }
+  .remember-toggle:hover {
+    transform: translateY(-50%);
+    box-shadow: none;
   }
   /* Visually hide the native checkbox but keep it in the accessibility tree
      and keyboard-focusable (display:none would drop it from tab order). It
@@ -225,7 +251,7 @@
   .remember-toggle:hover .remember-dot {
     border-color: color-mix(in srgb, var(--fg) 40%, transparent);
   }
-  .logo-boat { width: 1.6rem; height: 1.6rem; margin-right: 0.4rem; vertical-align: -0.15em; color: var(--red); }
+  .logo-boat { width: 1.6rem; height: 1.6rem; margin-right: 0.4rem; vertical-align: -0.15em; color: var(--brand-color, var(--accent)); }
   .version-label {
     position: fixed; bottom: 12px; right: 16px;
     font-size: 0.7rem; opacity: 0.25;
@@ -250,7 +276,7 @@
 <body>
 <main class="card">
   <h1 class="logo">
-    <svg class="logo-boat" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M16 4L16 22L6 22Z" fill="currentColor"/><path d="M16 8L16 22L24 22Z" fill="currentColor" opacity="0.6"/><path d="M4 24Q10 20 16 24Q22 28 28 24" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg><span>Odysseus</span>
+    <svg class="logo-boat" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M16 4L16 22L6 22Z" fill="currentColor"/><path d="M16 8L16 22L24 22Z" fill="currentColor" opacity="0.6"/><path d="M4 24Q10 20 16 24Q22 28 28 24" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg><span>GodSpeed</span>
   </h1>
   <p class="setup-note" id="setupNote" style="display:none"></p>
 

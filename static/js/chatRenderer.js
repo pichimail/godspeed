@@ -603,24 +603,13 @@ function _fmtCtx(n) {
  */
 export function applyModelColor(roleEl, modelName) {
   if (!modelName) return;
-  const color = modelColor(modelName);
-  if (color) {
-    roleEl.style.color = color;
-    roleEl.style.setProperty('--model-dot', color);
-  }
-  // Replace generic dot with provider logo if available
-  const logo = providerLogo(modelName);
+  // Keep the role header neutral and quiet; the model details remain in the
+  // click-through info popup instead of painting a colored badge into the log.
+  roleEl.style.color = 'color-mix(in srgb, var(--fg) 66%, transparent)';
+  roleEl.style.removeProperty('--model-dot');
   const existingLogo = roleEl.querySelector('.role-provider-logo');
-  if (!logo) {
-    if (existingLogo) existingLogo.remove();
-    roleEl.classList.remove('has-logo');
-  } else if (!existingLogo) {
-    const span = document.createElement('span');
-    span.className = 'role-provider-logo';
-    span.innerHTML = logo;
-    roleEl.classList.add('has-logo');
-    roleEl.prepend(span);
-  }
+  if (existingLogo) existingLogo.remove();
+  roleEl.classList.remove('has-logo');
   // Click to show model info popup
   if (!roleEl._hasInfoClick) {
     roleEl._hasInfoClick = true;
@@ -1838,7 +1827,7 @@ export function displayMetrics(messageElement, metrics) {
           compactMsg.className = 'msg msg-ai';
           const compactRole = document.createElement('div');
           compactRole.className = 'role';
-          compactRole.textContent = 'Odysseus';
+          compactRole.textContent = 'GodSpeed';
           const compactBody = document.createElement('div');
           compactBody.className = 'body';
           compactBody.innerHTML = 'Compacting context <span class="compact-wave">▁▂▃▅▂▁</span>';
@@ -2100,7 +2089,7 @@ export function addMessage(role, content, modelName, metadata) {
     const isCompacted = metadata?.compacted;
     const replyModels = replyModelPair(modelName, metadata);
     const resolvedModel = replyModels.actualModel || replyModels.requestedModel;
-    var _roleText = role === 'user' ? 'You' : (isSlash || isCompacted) ? 'Odysseus' : modelRouteLabel(replyModels.requestedModel, resolvedModel);
+    var _roleText = role === 'user' ? 'You' : (isSlash || isCompacted) ? 'GodSpeed' : modelRouteLabel(replyModels.requestedModel, resolvedModel);
     if (role === 'assistant' && (metadata?.research || metadata?.research_clarification)) {
       _roleText += ' (Research)';
     }

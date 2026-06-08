@@ -938,6 +938,23 @@ async def _startup_event():
 
     _startup_tasks.append(asyncio.create_task(_keepalive_loop()))
 
+    async def _openrouter_free_refresh_loop():
+        from datetime import timedelta, timezone
+        while True:
+            try:
+                from src.openrouter_free_models import refresh_free_models
+                await asyncio.to_thread(refresh_free_models)
+                logger.info("OpenRouter free catalog refreshed")
+            except Exception as e:
+                logger.debug(f"OpenRouter free catalog refresh skipped: {e}")
+            now = datetime.now(timezone.utc)
+            nxt = now.replace(hour=2, minute=0, second=0, microsecond=0)
+            if nxt <= now:
+                nxt += timedelta(days=1)
+            await asyncio.sleep(max(60, (nxt - now).total_seconds()))
+
+    _startup_tasks.append(asyncio.create_task(_openrouter_free_refresh_loop()))
+
     async def _ensure_default_tasks():
         # Create/reconcile default automation tasks + personal assistant for every user.
         owners = set()

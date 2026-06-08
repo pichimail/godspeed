@@ -26,6 +26,8 @@ from src.endpoint_resolver import (
     build_models_url,
     build_headers,
 )
+from src.openrouter_free_models import get_free_models as _get_openrouter_free_models
+from src.openrouter_free_models import refresh_free_models as _refresh_openrouter_free_models
 from src.auth_helpers import _auth_disabled, owner_filter
 
 logger = logging.getLogger(__name__)
@@ -876,6 +878,17 @@ def setup_model_routes(model_discovery):
         affects the visible endpoint list (CRUD on ModelEndpoint, prefs
         flip)."""
         _models_cache.clear()
+
+    @router.get("/openrouter/free-models")
+    def list_openrouter_free_models():
+        """Return the cached OpenRouter free-model catalog, refreshing lazily."""
+        return _get_openrouter_free_models()
+
+    @router.post("/openrouter/free-models/refresh")
+    def refresh_openrouter_free_models():
+        """Refresh the cached OpenRouter free-model catalog now."""
+        payload = _refresh_openrouter_free_models()
+        return payload
 
     # Track model-list refreshes by URL+key. This prevents repeated picker/API
     # opens from starting duplicate /models probes, and gives slow/offline

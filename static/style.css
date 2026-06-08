@@ -1,5 +1,5 @@
 /* ============================================ */
-/* Odysseus UI — Consolidated Stylesheet        */
+/* GodSpeed UI — Consolidated Stylesheet        */
 /* ============================================ */
 
 
@@ -17,11 +17,18 @@
 
 :root {
   /* Core palette */
-  --bg: #282c34;
-  --fg: #9cdef2;
-  --panel: #111;
-  --border: #355a66;
-  --red: #e06c75;
+  --bg: #070b16;
+  --fg: #eff7ff;
+  --panel: #101827;
+  --border: #3e536f;
+  --red: #ffb547;
+  --accent: #4ee7ff;
+  --accent-strong: #00c8ff;
+  --surface-strong: #172235;
+  --surface-hover: #1d2b43;
+  --focus-ring: color-mix(in srgb, var(--accent) 58%, transparent);
+  --shadow-strong: 0 18px 44px rgba(0, 0, 0, 0.42);
+  --ease-smooth: cubic-bezier(0.22, 0.61, 0.36, 1);
   /* Were `var(--green)` / `var(--warn)` — self-referential, so they
      resolved to invalid and every site fell back to its own literal
      (or, for sites with no fallback, painted as transparent/inherit).
@@ -51,13 +58,13 @@
   --color-recording-hover: #d63031;
   --color-muted: #888;
   --color-muted-alt: #6b7280;
-  --color-accent: #00aaff;
+  --color-accent: var(--accent);
   --color-agent-active: #00ff00;
   --color-brand-blue: #3b82f6;
   --color-blind-orange: #ff9800;
   --color-save-green: var(--color-success);
-  --color-link-hover: #66c7ff;
-  --color-subheader: #6b8a94;
+  --color-link-hover: #a7f1ff;
+  --color-subheader: #b7cbe7;
   --select-bg: var(--bg);
   --select-fg: var(--fg);
   --select-option-bg: color-mix(in srgb, var(--panel) 74%, var(--bg));
@@ -65,14 +72,19 @@
   --select-option-active-bg: color-mix(in srgb, var(--accent, var(--red)) 24%, var(--panel));
   /* Warm accent — used by the Goals/Today UI in Notes. Lives as a token so
      themes can override without touching the goal CSS. */
-  --accent-warm: #d19a66;
+  --accent-warm: #ffb547;
 }
 
 :root.light {
-  --bg: #f5f5f5;
-  --fg: #2b2b2b;
-  --panel: #fff;
-  --border: #bbb;
+  --bg: #f7f9fc;
+  --fg: #16202f;
+  --panel: #ffffff;
+  --border: #9cacc0;
+  --red: #b45f00;
+  --accent: #006f98;
+  --accent-strong: #005c82;
+  --surface-strong: #edf3fb;
+  --surface-hover: #e3edf8;
   --hl-bg: #f9f9f9;
   --hl-fg: #2b2b2b;
   --hl-keyword: #7928a1;
@@ -87,7 +99,7 @@
   --select-fg: var(--fg);
   --select-option-bg: var(--panel);
   --select-option-fg: var(--fg);
-  --select-option-active-bg: color-mix(in srgb, var(--red) 16%, var(--panel));
+  --select-option-active-bg: color-mix(in srgb, var(--accent) 18%, var(--panel));
 }
 
 /* ── Reset & Base ── */
@@ -96,6 +108,8 @@
 html, body { overflow-x: hidden; height: 100%; margin: 0; overscroll-behavior: none; }
 body {
   background-color: var(--bg);
+  background-image:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-strong) 18%, transparent), transparent 42%);
   color: var(--fg);
   /* Keep the base padding transition for older layout paths that still adjust
      the body directly. Edge docks reserve workspace room on the flex panes
@@ -107,6 +121,18 @@ body {
   height: 100%;
   height: 100dvh; /* dynamic viewport height — adapts when mobile keyboard opens */
   overflow: hidden;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  * {
+    scroll-behavior: smooth;
+  }
+}
+
+*:focus-visible {
+  outline: 2px solid var(--accent, var(--red));
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px var(--focus-ring);
 }
 
 /* Self-hosted Fira Code font */
@@ -170,19 +196,25 @@ html {
 }
 
 body.bg-pattern-dots {
-  background-image: radial-gradient(color-mix(in srgb, var(--bg-effect-color, var(--fg)) calc(5% * var(--bg-effect-intensity, 1)), transparent) 1px, transparent 1px);
-  background-size: 20px 20px; background-attachment: fixed;
+  background-image: none;
 }
 body.bg-pattern-synapse {
-  /* CSS grid as base, canvas pulses overlay */
-  background-image: linear-gradient(color-mix(in srgb, var(--bg-effect-color, var(--fg)) calc(3.5% * var(--bg-effect-intensity, 1)), transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--bg-effect-color, var(--fg)) calc(3.5% * var(--bg-effect-intensity, 1)), transparent) 1px, transparent 1px);
-  background-size: 24px 24px; background-attachment: fixed;
+  background-image: none;
 }
 body.bg-pattern-perlin-flow,
 body.bg-pattern-petals,
 body.bg-pattern-sparkles {
   /* canvas-only backgrounds */
+}
+
+#synapse-canvas,
+#rain-canvas,
+#constellations-canvas,
+#perlin-flow-canvas,
+#petals-canvas,
+#sparkles-canvas,
+#embers-canvas {
+  opacity: 0;
 }
 
 
@@ -223,7 +255,7 @@ body.bg-pattern-sparkles {
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: opacity 0.15s, background 0.15s, left 0.15s;
+      transition: opacity 180ms var(--ease-smooth), background 180ms var(--ease-smooth), border-color 180ms var(--ease-smooth), transform 180ms var(--ease-smooth), left 0.15s;
       z-index: 1;
       opacity: 0.7;
     }
@@ -233,6 +265,7 @@ body.bg-pattern-sparkles {
     .incognito-indicator:hover {
       opacity: 1;
       background: color-mix(in srgb, var(--accent) 20%, transparent);
+      transform: translateY(-50%) scale(1.04);
     }
 
     .chat-new-btn {
@@ -250,13 +283,15 @@ body.bg-pattern-sparkles {
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: opacity 0.08s, background 0.08s, left 0.15s, right 0.15s;
+      transition: opacity 180ms var(--ease-smooth), background 180ms var(--ease-smooth), color 180ms var(--ease-smooth), transform 180ms var(--ease-smooth), left 0.15s, right 0.15s;
       flex-shrink: 0;
       z-index: 1;
     }
     .chat-new-btn:hover {
       opacity: 1;
       color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+      transform: translateY(-50%) scale(1.05);
     }
     /* Flip new-chat and incognito when sidebar is on the right */
     body:has(.sidebar.right-side) .chat-new-btn {
@@ -333,18 +368,19 @@ body.bg-pattern-sparkles {
       cursor: pointer;
       padding: 4px 5px; border-radius: 4px;
       display: flex; align-items: center;
-      transition: color 0.08s, background 0.08s;
+      transition: color 180ms var(--ease-smooth), background 180ms var(--ease-smooth), transform 180ms var(--ease-smooth);
     }
     .export-dl-btn:hover {
       color: var(--accent);
       background: color-mix(in srgb, var(--accent) 12%, transparent);
+      transform: translateY(-1px);
     }
     .export-dropdown-menu {
       display: none;
       position: fixed;
       background: var(--panel); border: 1px solid var(--border);
       border-radius: 8px; padding: 4px; min-width: 120px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      box-shadow: var(--shadow-strong);
       z-index: 300;
       color: var(--fg);
     }
@@ -353,9 +389,13 @@ body.bg-pattern-sparkles {
       padding: 6px 8px; font-size: 11px; cursor: pointer;
       border-radius: 6px; color: var(--fg); white-space: nowrap;
       display: flex; align-items: center; gap: 10px;
-      transition: background 0.1s;
+      transition: background 180ms var(--ease-smooth), color 180ms var(--ease-smooth), transform 180ms var(--ease-smooth);
     }
-    .export-dropdown-item:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+    .export-dropdown-item:hover {
+      background: color-mix(in srgb, var(--accent) 14%, var(--panel));
+      color: var(--fg);
+      transform: translateX(2px);
+    }
     .export-dropdown-item .dropdown-icon {
       width: 14px; height: 14px;
       display: flex; align-items: center; justify-content: center;
@@ -395,7 +435,7 @@ body.bg-pattern-sparkles {
       min-height: 0;
       margin: 0;
       padding: 0;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 12px 0 36px rgba(0, 0, 0, 0.28);
       backdrop-filter: blur(10px);
       border: 1px solid color-mix(in srgb, var(--fg) 11%, transparent);
       position: relative;
@@ -460,11 +500,12 @@ body.bg-pattern-sparkles {
       cursor: pointer;
       padding: 6px 8px;
       border-radius: 8px;
-      transition: background 0.15s;
+      transition: background 180ms var(--ease-smooth), color 180ms var(--ease-smooth), transform 180ms var(--ease-smooth);
     }
 
     .user-bar-left:hover {
-      background: color-mix(in srgb, var(--fg) 6%, transparent);
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+      transform: translateY(-1px);
     }
 
     .user-bar-avatar {
@@ -510,12 +551,14 @@ body.bg-pattern-sparkles {
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: opacity 0.12s, background 0.12s;
+      transition: opacity 180ms var(--ease-smooth), background 180ms var(--ease-smooth), color 180ms var(--ease-smooth), transform 180ms var(--ease-smooth);
     }
 
     .user-bar-btn:hover {
       opacity: 1;
-      background: color-mix(in srgb, var(--fg) 8%, transparent);
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+      transform: translateY(-1px);
     }
 
 
@@ -1136,11 +1179,14 @@ body.bg-pattern-sparkles {
       display: flex; align-items: center; gap: 6px;
       padding: 8px 8px; margin: 1px 0; border-radius: 4px;
       background: transparent; cursor: pointer;
-      transition: background 0.08s;
+      transition: background 180ms var(--ease-smooth), color 180ms var(--ease-smooth), transform 180ms var(--ease-smooth);
       height: 29px;
       box-sizing: border-box;
     }
-    .section-header-flex:hover { background: color-mix(in srgb, var(--red) 8%, transparent); }
+    .section-header-flex:hover {
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+      transform: translateX(1px);
+    }
     .section-header-flex::after { content: none; }
     .section-header-flex h4::before { content: none; }
 
@@ -1233,9 +1279,14 @@ body.bg-pattern-sparkles {
       all: unset;
       cursor: pointer; opacity: 0.4; padding: 1px 3px; border-radius: 4px;
       display: inline-flex; align-items: center; justify-content: center;
-      transition: opacity 0.08s, background 0.08s;
+      transition: opacity 180ms var(--ease-smooth), background 180ms var(--ease-smooth), color 180ms var(--ease-smooth), transform 180ms var(--ease-smooth);
     }
-    .section-header-btn:hover { opacity: 1; background: color-mix(in srgb, var(--fg) 7%, transparent); }
+    .section-header-btn:hover {
+      opacity: 1;
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+      transform: translateY(-1px);
+    }
     .section-header-btn.active { opacity: 0.9; color: var(--accent); }
     .section-header-btn svg { width: 12px; height: 12px; }
 
@@ -1332,8 +1383,11 @@ body.bg-pattern-sparkles {
     .row { display:flex; gap:6px; align-items:center; }
     .list-item:hover,
     .models-row:hover {
-      background: color-mix(in srgb, var(--red) 8%, transparent);
-      border-color: var(--red);
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+      border-color: color-mix(in srgb, var(--accent) 62%, var(--border));
+      color: var(--fg);
+      transform: translateX(2px);
+      box-shadow: inset 2px 0 0 var(--accent);
     }
     /* Disabled tool — dimmed to signal its feature is turned off globally */
     .list-item.tool-disabled {
@@ -1436,8 +1490,9 @@ body.bg-pattern-sparkles {
       opacity: 1;
     }
     .list-item.active-session {
-      background: color-mix(in srgb, var(--red) 10%, transparent);
-      border-color: var(--red);
+      background: color-mix(in srgb, var(--accent) 16%, var(--panel));
+      border-color: color-mix(in srgb, var(--accent) 72%, var(--border));
+      box-shadow: inset 2px 0 0 var(--accent), 0 8px 20px rgba(0, 0, 0, 0.16);
       border-left-color: var(--red);
     }
     .list-item .provider-logo { opacity: 0.4 !important; }
@@ -1632,7 +1687,12 @@ body.bg-pattern-sparkles {
       line-height: 1.3;
       font-size: 13px;
       background: transparent;
-      transition: background 0.08s;
+      transition:
+        background 180ms var(--ease-smooth),
+        border-color 180ms var(--ease-smooth),
+        color 180ms var(--ease-smooth),
+        box-shadow 180ms var(--ease-smooth),
+        transform 180ms var(--ease-smooth);
       cursor: pointer;
       touch-action: pan-y;
     }
@@ -1723,17 +1783,23 @@ body.bg-pattern-sparkles {
       white-space: nowrap;
     }
     input, textarea, button, select {
-      background:var(--bg);
+      background: color-mix(in srgb, var(--panel) 82%, var(--bg));
       color:var(--fg);
-      border:1px solid var(--border);
+      border:1px solid color-mix(in srgb, var(--border) 82%, transparent);
       font-family:inherit;
       padding:6.9px;
-      border-radius: 4px;
-      transition: background 0.08s, border-color 0.08s, color 0.08s, opacity 0.08s;
+      border-radius: 6px;
+      transition:
+        background 180ms var(--ease-smooth),
+        border-color 180ms var(--ease-smooth),
+        color 180ms var(--ease-smooth),
+        opacity 180ms var(--ease-smooth),
+        box-shadow 180ms var(--ease-smooth),
+        transform 180ms var(--ease-smooth);
     }
     input:hover, textarea:hover, button:hover, select:hover {
-      border-color: var(--fg);
-      background-color: var(--panel);
+      border-color: color-mix(in srgb, var(--accent) 58%, var(--border));
+      background-color: var(--surface-hover, var(--panel));
     }
     :root.light input,
     :root.light textarea,
@@ -1763,10 +1829,11 @@ body.bg-pattern-sparkles {
     }
     :root.light select { color-scheme: light; }
     .chat-container {
+      --chat-bottom-gap: 14px;
       flex:1;
       display:flex;
       flex-direction:column;
-      padding:0 16px;
+      padding:0 16px var(--chat-bottom-gap);
       overflow:hidden;
       position:relative;
       min-height:0;
@@ -1783,6 +1850,8 @@ body.bg-pattern-sparkles {
       overflow-x:hidden;
       overscroll-behavior-y: none;
       margin-bottom:8px;
+      padding-bottom: 12px;
+      scroll-padding-bottom: 20px;
       white-space:normal;
       min-height:0;
       --chat-max: 800px;
@@ -1855,12 +1924,13 @@ body.bg-pattern-sparkles {
     #welcome-screen .welcome-name {
       font-size:2.2rem;
       font-weight:700;
-      background: linear-gradient(135deg, var(--brand-color, var(--red)), color-mix(in srgb, var(--brand-color, var(--red)) 60%, var(--fg)));
+      background: linear-gradient(135deg, var(--brand-color, var(--accent)), var(--red) 52%, color-mix(in srgb, var(--fg) 82%, var(--accent)));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       letter-spacing:0.03em;
       margin-bottom:10px;
+      filter: drop-shadow(0 10px 30px color-mix(in srgb, var(--accent) 22%, transparent));
     }
     .welcome-boat {
       width: 1.8rem;
@@ -1871,8 +1941,8 @@ body.bg-pattern-sparkles {
     }
     #welcome-screen .welcome-sub {
       font-size:0.85rem;
-      color:color-mix(in srgb, var(--fg) 60%, transparent);
-      opacity:0.6;
+      color:color-mix(in srgb, var(--fg) 78%, transparent);
+      opacity:0.82;
       line-height:1.5;
       max-width:300px;
     }
@@ -1886,7 +1956,7 @@ body.bg-pattern-sparkles {
     #welcome-screen .welcome-tip {
       font-size:0.75rem;
       color:var(--fg);
-      opacity:0.2;
+      opacity:0.42;
       margin-top:24px;
       max-width:320px;
       line-height:1.4;
@@ -1897,7 +1967,7 @@ body.bg-pattern-sparkles {
       background: none;
       border: 1px solid var(--border);
       color: var(--fg);
-      opacity: 0.25;
+      opacity: 0.55;
       cursor: pointer;
       padding: 6px 12px;
       border-radius: 20px;
@@ -1905,14 +1975,17 @@ body.bg-pattern-sparkles {
       align-items: center;
       justify-content: center;
       gap: 6px;
-      transition: all 0.15s;
+      transition: background 180ms var(--ease-smooth), border-color 180ms var(--ease-smooth), color 180ms var(--ease-smooth), opacity 180ms var(--ease-smooth), transform 180ms var(--ease-smooth), box-shadow 180ms var(--ease-smooth);
       margin-top: 16px;
       font-family: inherit;
       font-size: 11px;
     }
     .incognito-btn:hover {
-      opacity: 0.6;
-      background: color-mix(in srgb, var(--fg) 6%, transparent);
+      opacity: 1;
+      border-color: color-mix(in srgb, var(--accent) 70%, var(--border));
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
     }
     .incognito-btn.active {
       opacity: 1;
@@ -1929,7 +2002,12 @@ body.bg-pattern-sparkles {
     }
     /* When welcome is active, push input bar up toward center */
     .chat-container .chat-input-bar {
-      transition: margin 0.3s ease, max-width 0.3s ease;
+      transition:
+        border-color 180ms var(--ease-smooth),
+        box-shadow 180ms var(--ease-smooth),
+        background 180ms var(--ease-smooth),
+        margin 0.3s ease,
+        max-width 0.3s ease;
     }
     .chat-container.welcome-active .chat-input-bar {
       margin-bottom:30vh;
@@ -1948,31 +2026,32 @@ body.bg-pattern-sparkles {
       }
     }
     .msg {
-      margin: 8px 0;
+      margin: 7px 0;
       position: relative;
       display: flex;
       flex-direction: column;
       width: fit-content;
-      max-width: 85%;
+      max-width: 82%;
       min-width: 80px;
-      border-radius: 12px;
-      padding: 10px 12px;
-      line-height: 1.4;
+      border-radius: 10px;
+      padding: 9px 11px;
+      line-height: 1.42;
       word-wrap: break-word;
       overflow-wrap: break-word;
       overflow: hidden;
       animation: msg-enter 0.3s ease-out both;
+      box-shadow: none;
     }
     .msg-user {
       align-items: flex-end;
       margin-left: auto;
       margin-right: 8px;
-      background: var(--user-bubble-bg, color-mix(in srgb, var(--fg) 8%, var(--bg)));
-      border: 1px solid var(--bubble-border, var(--border));
-      border-radius: 18px 18px 0 18px;
+      background: color-mix(in srgb, var(--panel) 92%, var(--bg));
+      border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+      border-radius: 14px 14px 2px 14px;
       align-self: flex-end;
       width: fit-content;
-      max-width: 85%;
+      max-width: 82%;
       min-width: 80px;
       word-wrap: break-word;
       overflow-wrap: break-word;
@@ -1982,12 +2061,12 @@ body.bg-pattern-sparkles {
       align-items: flex-start;
       margin-right: auto;
       margin-left: 8px;
-      background: var(--ai-bubble-bg, var(--panel));
-      border: 1px solid var(--bubble-border, var(--border));
-      border-radius: 18px 18px 18px 0;
+      background: color-mix(in srgb, var(--panel) 94%, var(--bg));
+      border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+      border-radius: 14px 14px 14px 2px;
       align-self: flex-start;
-      width: 85%;
-      max-width: 85%;
+      width: 82%;
+      max-width: 82%;
       min-width: 80px;
       word-wrap: break-word;
       overflow-wrap: break-word;
@@ -1995,39 +2074,38 @@ body.bg-pattern-sparkles {
       transition: min-height 0.25s ease-out;
     }
     .msg .role {
-      font-weight: 600;
-      margin-bottom: 6px;
+      font-weight: 500;
+      margin-bottom: 4px;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      font-size: 0.82rem;
+      letter-spacing: -0.01em;
+      color: color-mix(in srgb, var(--fg) 62%, transparent);
     }
     .msg .role::before {
-      content: '';
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--model-dot, color-mix(in srgb, var(--fg) 30%, transparent));
-      flex-shrink: 0;
+      content: none;
     }
     .msg .role.has-logo::before { display: none; }
     .role-provider-logo { display: inline-flex; align-items: center; flex-shrink: 0; }
     .role-provider-logo svg { width: 12px; height: 12px; }
+    .msg .role .role-provider-logo { display: none !important; }
     .msg-user .role {
-      color: color-mix(in srgb, var(--fg) 60%, transparent);
+      color: color-mix(in srgb, var(--fg) 56%, transparent);
     }
     .msg-user .role::before {
-      background: color-mix(in srgb, var(--fg) 40%, transparent);
+      display: none;
     }
     .msg .body {
       width: 100%;
       white-space: normal;
       word-break: break-word;
       overflow-wrap: anywhere;
-      line-height: 1.5;
-      font-size: 0.95em;
+      line-height: 1.46;
+      font-size: 0.92em;
       margin: 0;
       overflow: hidden;
       max-width: 100%;
@@ -2052,33 +2130,33 @@ body.bg-pattern-sparkles {
       color: var(--fg);
     }
     .rag-sources {
-      margin-top: 12px;
-      border: 1px solid var(--border);
+      margin-top: 10px;
+      border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
       border-radius: 6px;
       padding: 8px;
-      font-size: 12px;
+      font-size: 11px;
     }
     .rag-sources summary {
       cursor: pointer;
-      color: var(--red);
-      font-weight: bold;
-      font-size: 11px;
+      color: color-mix(in srgb, var(--fg) 72%, transparent);
+      font-weight: 600;
+      font-size: 10px;
     }
     .rag-source-item {
-      margin-top: 8px;
+      margin-top: 7px;
       padding: 6px;
-      background: color-mix(in srgb, var(--fg) 4%, transparent);
+      background: color-mix(in srgb, var(--fg) 3%, transparent);
       border-radius: 4px;
-      border-left: 2px solid var(--red);
+      border-left: 2px solid color-mix(in srgb, var(--border) 76%, transparent);
     }
     .rag-similarity {
-      color: color-mix(in srgb, var(--fg) 50%, transparent);
-      font-size: 10px;
+      color: color-mix(in srgb, var(--fg) 44%, transparent);
+      font-size: 9px;
       margin-left: 6px;
     }
     .rag-snippet {
-      color: color-mix(in srgb, var(--fg) 65%, transparent);
-      font-size: 11px;
+      color: color-mix(in srgb, var(--fg) 58%, transparent);
+      font-size: 10px;
       margin-top: 4px;
       white-space: pre-wrap;
       max-height: 60px;
@@ -2114,14 +2192,14 @@ body.bg-pattern-sparkles {
       color: var(--red);
     }
     .msg .timestamp {
-      font-size: 10px;
-      color: color-mix(in srgb, var(--fg) 45%, transparent);
-      margin-top: 4px;
+      font-size: 9px;
+      color: color-mix(in srgb, var(--fg) 42%, transparent);
+      margin-top: 3px;
       text-align: right;
-      opacity: 0.7;
+      opacity: 0.8;
     }
     .msg-user .timestamp {
-      color: color-mix(in srgb, var(--fg) 72%, transparent);
+      color: color-mix(in srgb, var(--fg) 60%, transparent);
     }
     pre {
       overflow: hidden;
@@ -2163,8 +2241,8 @@ body.bg-pattern-sparkles {
     /* Unified chat input bar */
     .chat-input-bar {
       background: var(--input-bg, var(--panel));
-      border: 1px solid var(--input-border, var(--border));
-      border-radius: 16px;
+      border: 1px solid color-mix(in srgb, var(--input-border, var(--border)) 68%, transparent);
+      border-radius: 14px;
       padding: 10px 12px;
       display: flex;
       flex-direction: column;
@@ -2173,6 +2251,12 @@ body.bg-pattern-sparkles {
       margin-left: auto;
       margin-right: auto;
       width: 100%;
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.22);
+      transition: border-color 180ms var(--ease-smooth), box-shadow 180ms var(--ease-smooth), background 180ms var(--ease-smooth), margin 0.3s ease, max-width 0.3s ease;
+    }
+    .chat-input-bar:focus-within {
+      border-color: color-mix(in srgb, var(--accent) 56%, var(--input-border, var(--border)));
+      box-shadow: 0 16px 42px rgba(0, 0, 0, 0.26), 0 0 0 2px var(--focus-ring);
     }
     .chat-input-top {
       width: 100%;
@@ -2204,7 +2288,7 @@ body.bg-pattern-sparkles {
       font-size: 14px;
       line-height: 1.5;
       padding: 0;
-      border: 1px solid transparent;
+      border: 0;
       color: transparent;
       z-index: 1;
     }
@@ -2216,6 +2300,7 @@ body.bg-pattern-sparkles {
       background: transparent;
       border: none;
       outline: none;
+      box-shadow: none;
       resize: none;
       font-size: 14px;
       line-height: 1.5;
@@ -2227,7 +2312,7 @@ body.bg-pattern-sparkles {
       transition: height 0.12s ease-out;
     }
     .chat-input-bar textarea#message::placeholder {
-      color: color-mix(in srgb, var(--fg) 35%, transparent);
+      color: color-mix(in srgb, var(--fg) 52%, transparent);
     }
     .chat-input-bottom {
       display: flex;
@@ -2287,19 +2372,21 @@ body.bg-pattern-sparkles {
       background: none;
       border: none;
       color: var(--fg);
-      opacity: 0.5;
+      opacity: 0.68;
       cursor: pointer;
       padding: 6px;
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: opacity 0.15s, background 0.15s, color 0.15s;
+      transition: opacity 180ms var(--ease-smooth), background 180ms var(--ease-smooth), color 180ms var(--ease-smooth), transform 180ms var(--ease-smooth), box-shadow 180ms var(--ease-smooth);
       position: relative;
     }
     .input-icon-btn:hover {
-      opacity: 0.8;
-      background: color-mix(in srgb, var(--accent) 8%, transparent);
+      opacity: 1;
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+      transform: translateY(-1px);
     }
     .input-icon-btn.active,
     .input-icon-btn.expanded {
@@ -2471,7 +2558,7 @@ body.bg-pattern-sparkles {
          against ChatGPT-style themes where the stored override leaked
          to white and rendered the send button invisible. */
       background: var(--send-btn-bg, var(--red));
-      color: #fff;
+      color: #06111c;
       border: none;
       border-radius: 8px;
       min-width: 32px;
@@ -2482,7 +2569,8 @@ body.bg-pattern-sparkles {
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background 0.25s, border-color 0.25s, color 0.25s, width 0.3s cubic-bezier(0.34, 1, 0.64, 1), padding 0.3s, border-radius 0.3s, opacity 0.1s;
+      box-shadow: 0 10px 24px color-mix(in srgb, var(--send-btn-bg, var(--accent)) 26%, transparent);
+      transition: background 220ms var(--ease-smooth), border-color 220ms var(--ease-smooth), color 220ms var(--ease-smooth), box-shadow 220ms var(--ease-smooth), transform 220ms var(--ease-smooth), width 0.3s cubic-bezier(0.34, 1, 0.64, 1), padding 0.3s, border-radius 0.3s, opacity 0.1s;
       flex-shrink: 0;
       overflow: hidden;
     }
@@ -2547,7 +2635,9 @@ body.bg-pattern-sparkles {
     }
     .send-btn:hover {
       background: var(--send-btn-hover, color-mix(in srgb, var(--red) 80%, white));
-      color: #fff;
+      color: #06111c;
+      transform: translateY(-1px) scale(1.03);
+      box-shadow: 0 14px 32px color-mix(in srgb, var(--send-btn-hover, var(--accent)) 34%, transparent);
     }
     .send-btn.mic-mode,
     .send-btn.newchat-mode {
@@ -2562,7 +2652,8 @@ body.bg-pattern-sparkles {
     .send-btn.mic-mode:hover,
     .send-btn.newchat-mode:hover {
       background: color-mix(in srgb, var(--send-btn-hover, var(--send-btn-bg, var(--red))) 85%, var(--panel, #2a2a2a));
-      color: #fff;
+      color: #06111c;
+      border-color: color-mix(in srgb, var(--accent) 56%, var(--border));
     }
     /* Hover: just spin the + 90° (no size change). The "New chat" affordance
        is the tooltip (title="New chat") plus the icon rotation.
@@ -11278,7 +11369,8 @@ textarea.memory-add-input {
 }
 
 /* Editor pane — body-level flex sibling */
-.doc-editor-pane {
+    .doc-editor-pane {
+  --pane-bottom-gap: 14px;
   flex: 1;
   min-width: 0;
   max-width: 70vw;
@@ -11294,6 +11386,7 @@ textarea.memory-add-input {
   position: relative;
   z-index: 1;
   color-scheme: dark;
+  padding-bottom: var(--pane-bottom-gap);
   /* Smooth open: slide in from the right + fade. Same easing/duration as
      the notes pane so both drawers feel like one mechanism. */
   animation: doc-pane-enter 200ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
@@ -21546,7 +21639,7 @@ body.gallery-selecting .gallery-dl-btn,
 
 /* Welcome name — left-to-right wipe with a touch of horizontal stretch.
    Fires on initial render via the .welcome-name rule; restarts on Nobody⇄
-   Odysseus toggle via JS reflow trick. */
+   GodSpeed toggle via JS reflow trick. */
 .welcome-name {
   transform-origin: left center;
   animation: welcome-name-reveal 0.55s cubic-bezier(0.34, 1.32, 0.55, 1) both;

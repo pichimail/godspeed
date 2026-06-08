@@ -501,6 +501,131 @@ async function initDefaultChat() {
   });
 }
 
+/* ── OpenRouter Free ── */
+async function initOpenRouterFree() {
+  var statusEl = el('set-openrouterFreeStatus');
+  var refreshBtn = el('set-openrouterFreeRefreshBtn');
+  var useBtn = el('set-openrouterFreeUseBtn');
+  var catalog = null;
+
+  function _isOpenRouterEndpoint(ep) {
+    var base = String((ep && ep.base_url) || '').toLowerCase();
+    var name = String((ep && ep.name) || '').toLowerCase();
+    return base.includes('openrouter.ai') || name.includes('openrouter');
+  }
+
+  function _groupCount(group) {
+    return catalog && catalog.groups && Array.isArray(catalog.groups[group]) ? catalog.groups[group].length : 0;
+  }
+
+  function _renderStatus(extra) {
+    if (!statusEl) return;
+    if (!catalog || !catalog.models) {
+      statusEl.textContent = extra || 'No cached catalog yet';
+      return;
+    }
+    var updated = catalog.updated_at ? new Date(catalog.updated_at) : null;
+    var parts = [
+      catalog.count + ' free models',
+      'text ' + _groupCount('text'),
+      'vision ' + _groupCount('vision'),
+      'image ' + _groupCount('image'),
+      'audio ' + _groupCount('audio'),
+      'embeddings ' + _groupCount('embeddings'),
+    ];
+    if (updated && !isNaN(updated.getTime())) {
+      parts.push('updated ' + updated.toLocaleString());
+    }
+    if (catalog.stale) parts.push('stale');
+    if (catalog.error) parts.push(catalog.error);
+    statusEl.textContent = parts.join(' · ');
+    statusEl.style.color = catalog.stale ? 'var(--red)' : 'color-mix(in srgb, var(--fg) 45%, transparent)';
+    if (extra) statusEl.textContent += ' · ' + extra;
+  }
+
+  async function loadCatalog(force) {
+    try {
+      var url = '/api/openrouter/free-models' + (force ? '?refresh=1' : '');
+      var res = await fetch(url, { credentials: 'same-origin' });
+      catalog = await res.json();
+      _renderStatus();
+    } catch (e) {
+      statusEl.textContent = 'Failed to load free catalog';
+      statusEl.style.color = 'var(--red)';
+    }
+  }
+
+  await loadCatalog(false);
+
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', async function() {
+      refreshBtn.disabled = true;
+      var prev = refreshBtn.textContent;
+      refreshBtn.textContent = 'Refreshing...';
+      try {
+        var res = await fetch('/api/openrouter/free-models/refresh', { method: 'POST', credentials: 'same-origin' });
+        catalog = await res.json();
+        _renderStatus('refreshed');
+      } catch (e) {
+        _renderStatus('Refresh failed');
+      } finally {
+        refreshBtn.disabled = false;
+        refreshBtn.textContent = prev;
+      }
+    });
+  }
+
+  if (useBtn) {
+    useBtn.addEventListener('click', async function() {
+      useBtn.disabled = true;
+      var prev = useBtn.textContent;
+      useBtn.textContent = 'Applying...';
+      try {
+        var endpoints = await _fetchModelEndpoints();
+        var currentRes = await fetch('/api/auth/settings', { credentials: 'same-origin' });
+        var settings = await currentRes.json();
+        var chosen = endpoints.find(function(ep) { return String(ep.id || '') === String(settings.default_endpoint_id || '') && _isOpenRouterEndpoint(ep); });
+        if (!chosen) {
+          chosen = endpoints.find(_isOpenRouterEndpoint);
+        }
+        if (!chosen) {
+          _renderStatus('Add an OpenRouter endpoint first');
+          return;
+        }
+        if (window._isAdmin) {
+          try {
+            await fetch('/api/model-endpoints/' + encodeURIComponent(chosen.id) + '/models?refresh=true&refresh_timeout=60', {
+              credentials: 'same-origin',
+            });
+          } catch (_) {}
+        }
+        await fetch('/api/auth/settings', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            default_endpoint_id: chosen.id,
+            default_model: 'openrouter/free',
+          }),
+        });
+        if (settingsModule && settingsModule.refreshAiModelEndpoints) {
+          await settingsModule.refreshAiModelEndpoints();
+        }
+        var defaultEpSel = el('set-defaultEpSelect');
+        var defaultModelSel = el('set-defaultModelSelect');
+        if (defaultEpSel) defaultEpSel.value = chosen.id;
+        if (defaultModelSel) defaultModelSel.value = 'openrouter/free';
+        _renderStatus('Default set to openrouter/free');
+      } catch (e) {
+        _renderStatus('Could not apply free router');
+      } finally {
+        useBtn.disabled = false;
+        useBtn.textContent = prev;
+      }
+    });
+  }
+}
+
 /* ── Utility Model ── */
 async function initUtilityModel() {
   var epSel = el('set-utilityEpSelect');
@@ -2179,6 +2304,7 @@ function initAll() {
   initOpacityToggle();
   initialized = true;
   initDefaultChat();
+  initOpenRouterFree();
   initTeacherModel();
   initUtilityModel();
   initImageSettings();
@@ -2429,7 +2555,7 @@ async function initReminderSettings() {
   // regardless of channel). The hint should make that clear so
   // users don't think they have to choose between channels.
   const CHANNEL_HINTS = {
-    browser: 'Reminders appear as browser notifications inside Odysseus.',
+    browser: 'Reminders appear as browser notifications inside GodSpeed.',
     email: 'Reminders are emailed AND shown as a browser notification.',
     ntfy: 'Reminders are pushed via ntfy AND shown as a browser notification.',
     webhook: 'Reminders are POSTed to the selected integration AND shown as a browser notification. Use {{title}} and {{message}} in the payload template.',
@@ -3233,7 +3359,7 @@ const AGENT_CONFIGS = {
     namePrefix: 'codex agent',
     defaultName: 'Codex Agent',
     pluginPath: '/api/codex/plugin.zip',
-    setupDescription: 'Downloads the plugin bundle and registers it with Codex. Sets <code>ODYSSEUS_URL</code> + <code>ODYSSEUS_API_TOKEN</code>, fetches the plugin from <a href="/api/codex/plugin.zip" style="color:var(--accent,var(--red));">this Odysseus instance</a>, and runs <code>codex plugin add odysseus@personal</code>.',
+    setupDescription: 'Downloads the plugin bundle and registers it with Codex. Sets <code>ODYSSEUS_URL</code> + <code>ODYSSEUS_API_TOKEN</code>, fetches the plugin from <a href="/api/codex/plugin.zip" style="color:var(--accent,var(--red));">this GodSpeed instance</a>, and runs <code>codex plugin add odysseus@personal</code>.',
     buildSetup: (origin, token) => `export ODYSSEUS_URL=${origin}
 export ODYSSEUS_API_TOKEN='${token}'
 mkdir -p ~/plugins
@@ -3271,7 +3397,7 @@ python3 ~/plugins/odysseus/scripts/odysseus_api.py capabilities`,
     namePrefix: 'claude agent',
     defaultName: 'Claude Agent',
     pluginPath: '/api/claude/plugin.zip',
-    setupDescription: 'Downloads the skill bundle into <code>~/.claude/skills/odysseus/</code>. Sets <code>ODYSSEUS_URL</code> + <code>ODYSSEUS_API_TOKEN</code>, fetches the skill from <a href="/api/claude/plugin.zip" style="color:var(--accent,var(--red));">this Odysseus instance</a>. Claude Code auto-loads the skill on next start.',
+    setupDescription: 'Downloads the skill bundle into <code>~/.claude/skills/odysseus/</code>. Sets <code>ODYSSEUS_URL</code> + <code>ODYSSEUS_API_TOKEN</code>, fetches the skill from <a href="/api/claude/plugin.zip" style="color:var(--accent,var(--red));">this GodSpeed instance</a>. Claude Code auto-loads the skill on next start.',
     buildSetup: (origin, token) => `export ODYSSEUS_URL=${origin}
 export ODYSSEUS_API_TOKEN='${token}'
 mkdir -p ~/.claude
@@ -3592,7 +3718,7 @@ async function initUnifiedIntegrations() {
       if (ntfyHint) {
         ntfyHint.style.display = isNtfy ? 'block' : 'none';
         if (isNtfy) {
-          ntfyHint.innerHTML = 'Enter the ntfy server URL Odysseus can reach. Examples: <code>http://127.0.0.1:8091</code>, <code>http://100.x.y.z:8091</code>, or <code>https://ntfy.example.com</code>.';
+          ntfyHint.innerHTML = 'Enter the ntfy server URL GodSpeed can reach. Examples: <code>http://127.0.0.1:8091</code>, <code>http://100.x.y.z:8091</code>, or <code>https://ntfy.example.com</code>.';
         }
       }
       if (url) {
@@ -4861,7 +4987,7 @@ async function initUnifiedIntegrations() {
     formEl.innerHTML = `
       <div class="admin-card" style="margin-top:8px">
         <h2 style="font-size:13px">${esc(cfg.label)}</h2>
-        <div style="font-size:11px;opacity:0.65;line-height:1.45;margin:-2px 0 8px;">Generates a scoped token + setup commands so ${esc(cfg.word)} on your own machine can read/write your Odysseus data (todos, email, calendar, etc.). The agent runs in your terminal — it isn't streamed inside Odysseus.</div>
+        <div style="font-size:11px;opacity:0.65;line-height:1.45;margin:-2px 0 8px;">Generates a scoped token + setup commands so ${esc(cfg.word)} on your own machine can read/write your GodSpeed data (todos, email, calendar, etc.). The agent runs in your terminal — it isn't streamed inside GodSpeed.</div>
         <div class="settings-col">
           <div id="uf-codex-pending" style="display:${current ? 'none' : 'block'};font-size:11px;opacity:0.6;padding:6px 0;">Creating agent...</div>
           <div id="uf-codex-reveal" style="display:none;padding:10px 12px;border:1px solid var(--border);border-left:3px solid var(--accent, var(--red));border-radius:6px;background:rgba(0,0,0,0.04);width:100%;box-sizing:border-box;">
@@ -4881,7 +5007,7 @@ async function initUnifiedIntegrations() {
             </div>
 
             <div style="margin-top:14px;font-weight:600;font-size:11px;margin-bottom:4px;">Configure access</div>
-            <div style="font-size:11px;opacity:0.62;margin-bottom:6px;">Toggle which Odysseus tools this agent can use. New agents start with chat only.</div>
+            <div style="font-size:11px;opacity:0.62;margin-bottom:6px;">Toggle which GodSpeed tools this agent can use. New agents start with chat only.</div>
             <div id="uf-codex-inline-scopes"></div>
           </div>
           <div style="font-size:11px;font-weight:600;opacity:0.62;margin-top:10px;">${agentTokens.length ? 'Existing agents' : 'Agents'}</div>

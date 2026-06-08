@@ -9,9 +9,41 @@ import { makeWindowDraggable } from './windowDrag.js';
 import { snapModalToZone } from './tileManager.js';
 
 export const THEMES = {
-  dark:       { bg:'#282c34', fg:'#9cdef2', panel:'#111111', border:'#355a66', red:'#e06c75' },
-  light:      { bg:'#f0ebe3', fg:'#5a5248', panel:'#faf6f0', border:'#d4cdc2', red:'#c47d5a' },
-  midnight:   { bg:'#0d1117', fg:'#c9d1d9', panel:'#161b22', border:'#30363d', red:'#f85149' },
+  godspeed:   {
+    bg:'#070b16',
+    fg:'#eff7ff',
+    panel:'#101827',
+    border:'#3e536f',
+    red:'#ffb547',
+    advanced: {
+      brandColor: '#4ee7ff',
+      hamburgerColor: '#eff7ff',
+      sectionAccent: '#4ee7ff',
+      sendBtnBg: '#4ee7ff',
+      sendBtnHover: '#00c8ff',
+      toggleBg: '#172235',
+      toggleActive: '#4ee7ff',
+      accentPrimary: '#4ee7ff',
+      accentError: '#ffb547',
+      userBubbleBg: '#152238',
+      aiBubbleBg: '#101827',
+      bubbleBorder: '#3e536f',
+      sidebarBg: '#0c1322',
+      inputBg: '#101827',
+      inputBorder: '#3e536f',
+    },
+  },
+  dark:       { bg:'#070b16', fg:'#eff7ff', panel:'#101827', border:'#3e536f', red:'#ffb547',
+                advanced: { brandColor: '#4ee7ff', hamburgerColor: '#eff7ff', sectionAccent: '#4ee7ff',
+                            sendBtnBg: '#4ee7ff', sendBtnHover: '#00c8ff', toggleBg: '#172235',
+                            toggleActive: '#4ee7ff', accentPrimary: '#4ee7ff', accentError: '#ffb547',
+                            userBubbleBg: '#152238', aiBubbleBg: '#101827', bubbleBorder: '#3e536f',
+                            sidebarBg: '#0c1322', inputBg: '#101827', inputBorder: '#3e536f' } },
+  light:      { bg:'#f7f9fc', fg:'#16202f', panel:'#ffffff', border:'#9cacc0', red:'#b45f00',
+                advanced: { brandColor: '#006f98', sectionAccent: '#006f98', sendBtnBg: '#006f98',
+                            sendBtnHover: '#005c82', toggleActive: '#006f98', accentPrimary: '#006f98',
+                            inputBg: '#ffffff', inputBorder: '#9cacc0', sidebarBg: '#edf3fb' } },
+  midnight:   { bg:'#0d1117', fg:'#c9d1d9', panel:'#161b22', border:'#30363d', red:'#f6e81c' },
   paper:      { bg:'#faf8f5', fg:'#3b3836', panel:'#ffffff', border:'#d5d0c8', red:'#c5ac4a' },
   // Spicy / fun themes
   cyberpunk:  { bg:'#0a0a0f', fg:'#0ff0fc', panel:'#12101a', border:'#9b30ff', red:'#e040fb' },
@@ -31,7 +63,7 @@ export const THEMES = {
   cute:       { bg:'#fff0f5', fg:'#d4608a', panel:'#fff8fa', border:'#f0c0d0', red:'#ff6b9d' },
 };
 
-const DEFAULT_THEME = 'dark';
+const DEFAULT_THEME = 'godspeed';
 const LS_KEY = 'odysseus-theme';
 const CUSTOM_THEMES_KEY = 'odysseus-custom-themes';
 
@@ -46,7 +78,8 @@ const MAX_CUSTOM_THEMES = 8;
 
 // Default background patterns for built-in themes
 const THEME_DEFAULT_PATTERN = {
-  dark:       'none',
+  godspeed:   'synapse',
+  dark:       'synapse',
   light:      'dots',
   midnight:   'rain',
   paper:      'dots',
@@ -62,6 +95,8 @@ const THEME_DEFAULT_PATTERN = {
 
 // Default effect colors for specific themes (overrides --fg)
 const THEME_DEFAULT_EFFECT_COLOR = {
+  godspeed:   '#4ee7ff',
+  dark:       '#4ee7ff',
   midnight:   '#ffffff',
   organs:     '#451616',
   cute:       '#ff8cb8',
@@ -70,6 +105,8 @@ const THEME_DEFAULT_EFFECT_COLOR = {
 
 // Default effect intensity (0..1) per theme. Any theme not listed defaults to 1.
 const THEME_DEFAULT_INTENSITY = {
+  godspeed:   0.65,
+  dark:       0.65,
   midnight:   0.5,
   terminal:   0.8,
   organs:     0.65,
@@ -77,6 +114,8 @@ const THEME_DEFAULT_INTENSITY = {
 
 // Default frosted-glass state per theme. Themes not listed default to false.
 const THEME_DEFAULT_FROSTED = {
+  godspeed:   true,
+  dark:       true,
   lavender:   true,
 };
 
@@ -183,7 +222,8 @@ const ADV_KEYS = [
   { key: 'aiBubbleBg',         css: '--ai-bubble-bg',      label: 'AI Chat Bubble',   group: 'Chat Bubbles' },
   { key: 'bubbleBorder',       css: '--bubble-border',     label: 'Border Chat Bubble', group: 'Chat Bubbles' },
   { key: 'sidebarBg',          css: '--sidebar-bg',        label: 'Sidebar Bg',       group: 'Sidebar' },
-  { key: 'brandColor',         css: '--brand-color',       label: 'Odysseus Logo',    group: 'Sidebar' },
+  { key: 'sectionAccent',      css: '--section-accent',    label: 'Section Accent',   group: 'Sidebar' },
+  { key: 'brandColor',         css: '--brand-color',       label: 'GodSpeed Logo',    group: 'Sidebar' },
   { key: 'hamburgerColor',     css: '--hamburger-color',   label: 'Hamburger Menu',   group: 'Sidebar' },
   { key: 'inputBg',            css: '--input-bg',          label: 'Input Bg',         group: 'Chat Input / Prompt Area' },
   { key: 'inputBorder',        css: '--input-border',      label: 'Input Border',     group: 'Chat Input / Prompt Area' },
@@ -191,26 +231,34 @@ const ADV_KEYS = [
   { key: 'sendBtnHover',       css: '--send-btn-hover',    label: 'Send Hover',       group: 'Chat Input / Prompt Area' },
   { key: 'codeBg',             css: '--code-bg',           label: 'Code Bg',          group: 'Code Blocks' },
   { key: 'codeFg',             css: '--code-fg',           label: 'Code Text',        group: 'Code Blocks' },
+  { key: 'toggleBg',           css: '--toggle-bg',         label: 'Toggle Bg',        group: 'Controls' },
   { key: 'toggleActive',       css: '--toggle-active',     label: 'Toggle On',        group: 'Controls' },
+  { key: 'accentPrimary',      css: '--accent-primary',    label: 'Primary Accent',   group: 'Controls' },
+  { key: 'accentError',        css: '--accent-error',      label: 'Error Accent',     group: 'Controls' },
 ];
 
 function computeAdvancedDefaults(colors) {
   const syn = deriveSyntaxColors(colors);
   const red = colors.red || '#e06c75';
+  const brand = (colors.advanced && colors.advanced.brandColor) || red;
   return {
     userBubbleBg: colors.bg,
     aiBubbleBg: colors.panel,
     bubbleBorder: colors.border,
     sidebarBg: colors.panel,
-    brandColor: red,
+    sectionAccent: brand,
+    brandColor: brand,
     hamburgerColor: colors.fg,
     inputBg: colors.panel,
     inputBorder: colors.border,
-    sendBtnBg: red,
+    sendBtnBg: brand,
     sendBtnHover: red,
     codeBg: syn.bg,
     codeFg: syn.fg,
-    toggleActive: red,
+    toggleBg: colors.border,
+    toggleActive: brand,
+    accentPrimary: brand,
+    accentError: red,
   };
 }
 
@@ -253,11 +301,17 @@ function generateHarmonyColors(accentHex, harmonyType, mode) {
 
 export function applyColors(colors) {
   const s = document.documentElement.style;
+  const adv = colors.advanced || {};
+  const accent = adv.accentPrimary || adv.brandColor || colors.red;
   s.setProperty('--bg', colors.bg);
   s.setProperty('--fg', colors.fg);
   s.setProperty('--panel', colors.panel);
   s.setProperty('--border', colors.border);
   if (colors.red) s.setProperty('--red', colors.red);
+  if (accent) {
+    s.setProperty('--accent', accent);
+    s.setProperty('--color-accent', accent);
+  }
 
   // Keep the mobile browser toolbar / status bar matched to the theme bg
   // (same as the early head-script does on first paint).
@@ -278,14 +332,13 @@ export function applyColors(colors) {
   s.setProperty('--hl-params', syn.params);
 
   // Apply advanced overrides (or defaults)
-  const adv = colors.advanced || {};
   const defaults = computeAdvancedDefaults(colors);
   for (const { key, css } of ADV_KEYS) {
     s.setProperty(css, adv[key] || defaults[key]);
   }
 
   // Update favicon to match theme accent color
-  _updateFavicon(colors.red || '#e06c75');
+  _updateFavicon(adv.brandColor || accent || colors.red || '#4ee7ff');
 }
 
 // Per-route SVG shape registry — kept in sync with the inline favicon
@@ -630,7 +683,7 @@ export function initThemeUI() {
         <span style="background:${c.fg}"></span>
         <span style="background:${c.red}"></span>
       </div>
-      ${name === 'dark' ? 'original' : (name === 'gpt' ? 'GPT' : name)}
+      ${name === 'godspeed' ? 'GodSpeed' : (name === 'dark' ? 'original' : (name === 'gpt' ? 'GPT' : name))}
     </div>
   `).join('');
 

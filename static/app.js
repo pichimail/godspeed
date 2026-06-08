@@ -1,5 +1,5 @@
 // ============================================
-// Odysseus UI — Main Application Orchestrator
+// GodSpeed UI — Main Application Orchestrator
 // ES6 module — entry point, no exports (wires all modules together)
 // ============================================
 import Storage from './js/storage.js';
@@ -351,7 +351,7 @@ function initializeEventListeners() {
       e.stopPropagation();
       exportMenu.classList.remove('open');
       const meta = sessionModule.getSessions().find(s => s.id === sessionModule.getCurrentSessionId());
-      const sessionName = meta ? meta.name : 'Odysseus Chat';
+      const sessionName = meta ? meta.name : 'GodSpeed Chat';
       const originalTitle = document.title;
       document.title = sessionName;
       const chatHistory = document.getElementById('chat-history');
@@ -2195,7 +2195,7 @@ function initializeEventListeners() {
       pickerWrap.classList.toggle('picker-auto-hidden', w < PICKER_HIDE_WIDTH);
       // Hide placeholder text
       if (textarea) {
-        textarea.setAttribute('placeholder', w < PLACEHOLDER_HIDE_WIDTH ? '' : 'Message Odysseus...');
+        textarea.setAttribute('placeholder', w < PLACEHOLDER_HIDE_WIDTH ? '' : 'Message GodSpeed...');
       }
       // Hide entire bottom toolbar (tools, mode toggle) — only send button remains
       if (inputBottom) {
@@ -3414,7 +3414,7 @@ function initializeEventListeners() {
 // ============================================
 // INITIALIZATION ON PAGE LOAD
 // ============================================
-function startOdysseusApp() {
+function startGodSpeedApp() {
   if (window.__odysseusAppStarted) return;
   window.__odysseusAppStarted = true;
   // Set CSS variables
@@ -4152,7 +4152,7 @@ function startOdysseusApp() {
 }
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', startOdysseusApp, { once: true });
+  document.addEventListener('DOMContentLoaded', startGodSpeedApp, { once: true });
 } else {
-  startOdysseusApp();
+  startGodSpeedApp();
 }
