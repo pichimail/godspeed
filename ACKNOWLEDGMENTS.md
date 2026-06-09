@@ -159,14 +159,5 @@ concerns from earlier are resolved:
 
 ---
 
-## Thanks to
-
-Most of Odysseus's code was written *with* AI models, not just by a human.
-The project would not exist without them — credit where credit is due:
-
-- **gpt-oss-120b** — the legend that kicked this project off.
-- **Qwen3-235B**
-- **DeepSeek V3.1 · DeepSeek V4 Pro · DeepSeek V4 Flash**
-- **Claude** (Anthropic)
-- **Codex** (OpenAI)
-- Friends, for helping me debug.
+The project also benefits from feedback from testers and users who help catch
+regressions and shape the product direction.
