@@ -51,7 +51,7 @@ Share this one-go command with users who want the full local GodSpeed app plus
 the Chrome assistant on their device:
 
 ```bash
-curl -fsSL -H "Cache-Control: no-cache" https://raw.githubusercontent.com/pewdiepie-archdaemon/odysseus/dev/scripts/install-godspeed.sh | bash
+curl -fsSL -H "Cache-Control: no-cache" https://raw.githubusercontent.com/pichimail/godspeed/main/scripts/install-godspeed.sh | bash
 ```
 
 The same command also updates an existing install. It clones or updates GodSpeed
@@ -64,13 +64,13 @@ Use these variants when needed:
 
 ```bash
 # Install or update on the default local port.
-curl -fsSL -H "Cache-Control: no-cache" https://raw.githubusercontent.com/pewdiepie-archdaemon/odysseus/dev/scripts/install-godspeed.sh | bash
+curl -fsSL -H "Cache-Control: no-cache" https://raw.githubusercontent.com/pichimail/godspeed/main/scripts/install-godspeed.sh | bash
 
 # Install on a different local port.
-GODSPEED_PORT=7870 bash <(curl -fsSL -H "Cache-Control: no-cache" https://raw.githubusercontent.com/pewdiepie-archdaemon/odysseus/dev/scripts/install-godspeed.sh)
+GODSPEED_PORT=7870 bash <(curl -fsSL -H "Cache-Control: no-cache" https://raw.githubusercontent.com/pichimail/godspeed/main/scripts/install-godspeed.sh)
 
 # Make GodSpeed reachable from another phone/laptop on a trusted LAN or VPN.
-GODSPEED_HOST=0.0.0.0 bash <(curl -fsSL -H "Cache-Control: no-cache" https://raw.githubusercontent.com/pewdiepie-archdaemon/odysseus/dev/scripts/install-godspeed.sh)
+GODSPEED_HOST=0.0.0.0 bash <(curl -fsSL -H "Cache-Control: no-cache" https://raw.githubusercontent.com/pichimail/godspeed/main/scripts/install-godspeed.sh)
 ```
 
 Chrome requires unpacked extensions to be loaded once by the user:
@@ -94,8 +94,8 @@ pull request guidelines.
 
 ### Docker (recommended)
 ```bash
-git clone https://github.com/pewdiepie-archdaemon/odysseus.git
-cd odysseus
+git clone https://github.com/pichimail/godspeed.git
+cd godspeed
 cp .env.example .env       # optional, but recommended for explicit defaults
 docker compose up -d --build
 ```
@@ -108,8 +108,8 @@ only when you intentionally want LAN/reverse-proxy access.
 
 ### Native Linux / macOS
 ```bash
-git clone https://github.com/pewdiepie-archdaemon/odysseus.git
-cd odysseus
+git clone https://github.com/pichimail/godspeed.git
+cd godspeed
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -126,8 +126,8 @@ Docker on macOS cannot use the Metal GPU. For GPU-accelerated Cookbook on an
 M-series Mac, run GodSpeed natively:
 
 ```bash
-git clone https://github.com/pewdiepie-archdaemon/odysseus.git
-cd odysseus
+git clone https://github.com/pichimail/godspeed.git
+cd godspeed
 ./start-macos.sh
 ```
 
@@ -300,16 +300,16 @@ do not run on macOS. MLX-only models are not served by GodSpeed.
 server; safe to re-run):
 
 ```powershell
-git clone https://github.com/pewdiepie-archdaemon/odysseus.git
-cd odysseus
+git clone https://github.com/pichimail/godspeed.git
+cd godspeed
 powershell -ExecutionPolicy Bypass -File .\launch-windows.ps1
 ```
 
 Or do it by hand:
 
 ```powershell
-git clone https://github.com/pewdiepie-archdaemon/odysseus.git
-cd odysseus
+git clone https://github.com/pichimail/godspeed.git
+cd godspeed
 py -3.11 -m venv venv
 venv\Scripts\Activate.ps1
 pip install -r requirements.txt
@@ -459,11 +459,11 @@ All user data lives in `data/` (gitignored): `app.db` (sessions, messages, docum
 
 ## Star History
 
-<a href="https://www.star-history.com/?repos=pewdiepie-archdaemon%2Fodysseus&type=date&legend=top-left">
+<a href="https://www.star-history.com/?repos=pichimail%2Fgodspeed&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=pewdiepie-archdaemon/odysseus&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=pewdiepie-archdaemon/odysseus&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=pewdiepie-archdaemon/odysseus&type=date&legend=top-left" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=pichimail/godspeed&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=pichimail/godspeed&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=pichimail/godspeed&type=date&legend=top-left" />
  </picture>
 </a>
 

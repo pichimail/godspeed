@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_URL="${GODSPEED_REPO_URL:-https://github.com/pewdiepie-archdaemon/odysseus.git}"
-REPO_BRANCH="${GODSPEED_BRANCH:-dev}"
+REPO_URL="${GODSPEED_REPO_URL:-https://github.com/pichimail/godspeed.git}"
+REPO_BRANCH="${GODSPEED_BRANCH:-main}"
 HOME_DIR="${GODSPEED_HOME:-$HOME/.godspeed}"
 APP_DIR="$HOME_DIR/app"
 PORT="${GODSPEED_PORT:-7860}"

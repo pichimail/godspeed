@@ -13,7 +13,7 @@ Features:
 Install or update GodSpeed on the user's device with one command:
 
 ```bash
-curl -fsSL -H "Cache-Control: no-cache" https://raw.githubusercontent.com/pewdiepie-archdaemon/odysseus/dev/scripts/install-godspeed.sh | bash
+curl -fsSL -H "Cache-Control: no-cache" https://raw.githubusercontent.com/pichimail/godspeed/main/scripts/install-godspeed.sh | bash
 ```
 
 Then load the Chrome assistant once:
