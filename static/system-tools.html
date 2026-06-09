@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mac System Tools - Odysseus</title>
+  <link rel="stylesheet" href="/static/css/system-tools.css">
+</head>
+<body>
+  <!-- System Tools Panel -->
+  <div id="system-tools-panel">
+
+    <!-- Tabs -->
+    <div class="system-tools-tabs">
+      <button class="system-tools-tab active" data-tab="overview">Overview</button>
+      <button class="system-tools-tab" data-tab="cleanup">Cleanup</button>
+      <button class="system-tools-tab" data-tab="storage">Storage</button>
+      <button class="system-tools-tab" data-tab="duplicates">Duplicates</button>
+      <button class="system-tools-tab" data-tab="devtools">Dev Tools</button>
+    </div>
+
+    <!-- Overview Tab -->
+    <div class="system-tools-content" data-content="overview">
+      <div class="system-tools-section">
+        <h2>
+          <span class="section-icon">🏥</span>
+          System Health
+        </h2>
+        <div id="system-health-display"></div>
+      </div>
+
+      <div class="system-tools-section">
+        <h2>
+          <span class="section-icon">💿</span>
+          Disk Usage
+        </h2>
+        <div id="disk-usage-display"></div>
+      </div>
+
+      <div class="system-tools-section">
+        <h2>
+          <span class="section-icon">⚡</span>
+          Quick Actions
+        </h2>
+        <div class="cleanup-actions">
+          <button id="cleanup-light-btn" class="cleanup-btn light">
+            🧹 Light Cleanup
+          </button>
+          <button id="purge-ram-btn" class="cleanup-btn">
+            💾 Purge RAM
+          </button>
+          <button id="analyze-storage-btn" class="cleanup-btn">
+            📊 Analyze Storage
+          </button>
+          <button id="find-duplicates-btn" class="cleanup-btn">
+            🔍 Find Duplicates
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cleanup Tab -->
+    <div class="system-tools-content hidden" data-content="cleanup">
+      <div class="system-tools-section">
+        <h2>
+          <span class="section-icon">🧹</span>
+          Cleanup Operations
+        </h2>
+        <div class="cleanup-actions">
+          <button id="cleanup-light-btn-2" class="cleanup-btn light">
+            🧹 Light Cleanup
+            <small>User caches only</small>
+          </button>
+          <button id="cleanup-deep-btn" class="cleanup-btn deep">
+            🔥 Deep Cleanup
+            <small>System-wide clean</small>
+          </button>
+          <button id="cleanup-docker-btn" class="cleanup-btn docker">
+            🐳 Docker Cleanup
+            <small>Images & containers</small>
+          </button>
+          <button id="scan-node-modules-btn" class="cleanup-btn node">
+            📦 Scan node_modules
+            <small>Find & clean</small>
+          </button>
+        </div>
+      </div>
+
+      <div class="system-tools-section">
+        <h2>Results</h2>
+        <div id="cleanup-results"></div>
+      </div>
+
+      <div class="system-tools-section">
+        <h2>node_modules Scanner</h2>
+        <div id="node-modules-results"></div>
+      </div>
+    </div>
+
+    <!-- Storage Tab -->
+    <div class="system-tools-content hidden" data-content="storage">
+      <div class="system-tools-section">
+        <h2>
+          <span class="section-icon">📊</span>
+          Storage Analysis
+        </h2>
+        <div style="margin-bottom: 16px;">
+          <input
+            type="text"
+            id="storage-path-input"
+            placeholder="/Users/username or leave empty for home"
+            style="width: 100%; padding: 10px; border: 1px solid #e0e0e0; border-radius: 6px;"
+          >
+          <button
+            id="analyze-storage-btn-2"
+            class="btn btn-primary"
+            style="margin-top: 8px;"
+          >
+            Analyze
+          </button>
+        </div>
+        <div id="storage-analysis-display"></div>
+      </div>
+    </div>
+
+    <!-- Duplicates Tab -->
+    <div class="system-tools-content hidden" data-content="duplicates">
+      <div class="system-tools-section">
+        <h2>
+          <span class="section-icon">🔍</span>
+          Duplicate File Finder
+        </h2>
+        <div style="margin-bottom: 16px;">
+          <p>Find and remove duplicate files to free up disk space.</p>
+          <button id="find-duplicates-btn-2" class="btn btn-primary">
+            🔍 Scan for Duplicates
+          </button>
+        </div>
+        <div id="duplicates-results"></div>
+      </div>
+    </div>
+
+    <!-- Dev Tools Tab -->
+    <div class="system-tools-content hidden" data-content="devtools">
+      <div class="system-tools-section">
+        <h2>
+          <span class="section-icon">⚙️</span>
+          Godspeed Dev Tools
+        </h2>
+
+        <div style="margin-bottom: 24px;">
+          <h3>Port Management</h3>
+          <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+            <button id="kill-port-btn" class="btn btn-danger">
+              🔫 Kill Port
+            </button>
+            <button id="list-ports-btn" class="btn btn-primary">
+              📋 List Busy Ports
+            </button>
+          </div>
+          <div id="ports-list"></div>
+        </div>
+
+        <div style="margin-bottom: 24px;">
+          <h3>Memory Management</h3>
+          <button id="purge-ram-btn-2" class="btn btn-success">
+            💾 Purge Inactive RAM
+          </button>
+          <p style="margin-top: 8px; color: #666; font-size: 14px;">
+            Free up memory by purging inactive RAM. Safe operation, may temporarily slow down your Mac.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    import systemTools from '/static/js/system-tools.js';
+
+    // Initialize system tools for full page view
+    systemTools.init(window.location.origin);
+    systemTools.initFullPage();
+
+    // Tab switching
+    document.querySelectorAll('.system-tools-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const targetTab = tab.dataset.tab;
+
+        // Update tab buttons
+        document.querySelectorAll('.system-tools-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        // Update content sections
+        document.querySelectorAll('.system-tools-content').forEach(content => {
+          if (content.dataset.content === targetTab) {
+            content.classList.remove('hidden');
+          } else {
+            content.classList.add('hidden');
+          }
+        });
+      });
+    });
+
+    // Additional button event listeners
+    document.getElementById('cleanup-light-btn-2')?.addEventListener('click', () => {
+      systemTools.runCleanup('light');
+    });
+
+    document.getElementById('analyze-storage-btn-2')?.addEventListener('click', () => {
+      const path = document.getElementById('storage-path-input').value;
+      systemTools.analyzeStorage(path || null);
+    });
+
+    document.getElementById('find-duplicates-btn-2')?.addEventListener('click', () => {
+      systemTools.findDuplicates();
+    });
+
+    document.getElementById('purge-ram-btn-2')?.addEventListener('click', () => {
+      systemTools.purgeRAM();
+    });
+
+    // Show panel
+    const panel = document.getElementById('system-tools-panel');
+    if (panel) panel.style.display = 'block';
+  </script>
+</body>
+</html>

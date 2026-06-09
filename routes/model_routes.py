@@ -1825,9 +1825,9 @@ def setup_model_routes(model_discovery):
         # no per-user default yet, we resolve via the owner-scoped endpoint
         # lookup below (last-resort: first enabled endpoint THIS user owns).
         # Unauthenticated single-user mode keeps the old behavior.
-        from src.auth_helpers import get_current_user as _gcu
+        from src.auth_helpers import effective_user as _effective_user
         try:
-            _user = _gcu(request) or ""
+            _user = _effective_user(request) or ""
         except Exception:
             _user = ""
         # Admins resolve via the global defaults (they own them, and the

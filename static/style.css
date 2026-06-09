@@ -73,6 +73,9 @@
   /* Warm accent — used by the Goals/Today UI in Notes. Lives as a token so
      themes can override without touching the goal CSS. */
   --accent-warm: #ffb547;
+  --ui-border: color-mix(in srgb, var(--border) 72%, transparent);
+  --ui-divider: color-mix(in srgb, var(--border) 46%, transparent);
+  --ui-focus-ring: color-mix(in srgb, var(--accent) 26%, transparent);
 }
 
 :root.light {
@@ -111,6 +114,8 @@ body {
   background-image:
     linear-gradient(180deg, color-mix(in srgb, var(--surface-strong) 18%, transparent), transparent 42%);
   color: var(--fg);
+  font-size: 14px;
+  line-height: 1.42;
   /* Keep the base padding transition for older layout paths that still adjust
      the body directly. Edge docks reserve workspace room on the flex panes
      below so left + right docks can coexist without skewing the whole body. */
@@ -130,9 +135,9 @@ body {
 }
 
 *:focus-visible {
-  outline: 2px solid var(--accent, var(--red));
+  outline: 1px solid var(--accent, var(--red));
   outline-offset: 2px;
-  box-shadow: 0 0 0 5px var(--focus-ring);
+  box-shadow: 0 0 0 3px var(--ui-focus-ring);
 }
 
 /* Self-hosted Fira Code font */
@@ -435,7 +440,7 @@ body.bg-pattern-sparkles {
       min-height: 0;
       margin: 0;
       padding: 0;
-      box-shadow: 12px 0 36px rgba(0, 0, 0, 0.28);
+      box-shadow: none;
       backdrop-filter: blur(10px);
       border: 1px solid color-mix(in srgb, var(--fg) 11%, transparent);
       position: relative;
@@ -485,10 +490,11 @@ body.bg-pattern-sparkles {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 12px;
+      padding: 10px 12px;
       flex-shrink: 0;
       gap: 4px;
-      min-height: 48px;
+      min-height: 46px;
+      border-top: 1px solid var(--ui-divider);
     }
 
     .user-bar-left {
@@ -498,20 +504,20 @@ body.bg-pattern-sparkles {
       flex: 1;
       min-width: 0;
       cursor: pointer;
-      padding: 6px 8px;
-      border-radius: 8px;
-      transition: background 180ms var(--ease-smooth), color 180ms var(--ease-smooth), transform 180ms var(--ease-smooth);
+      padding: 6px 0;
+      border-radius: 0;
+      transition: color 180ms var(--ease-smooth), transform 180ms var(--ease-smooth);
     }
 
     .user-bar-left:hover {
-      background: color-mix(in srgb, var(--accent) 10%, transparent);
-      transform: translateY(-1px);
+      color: var(--accent);
+      transform: none;
     }
 
     .user-bar-avatar {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      border-radius: 0;
       background: color-mix(in srgb, var(--fg) 12%, transparent);
       display: flex;
       align-items: center;
@@ -525,7 +531,7 @@ body.bg-pattern-sparkles {
     }
 
     .user-bar-name {
-      font-size: 9.75px;
+      font-size: 10.5px;
       font-weight: 500;
       color: var(--fg);
       opacity: 0.8;
@@ -547,18 +553,17 @@ body.bg-pattern-sparkles {
       opacity: 0.35;
       cursor: pointer;
       padding: 6px;
-      border-radius: 6px;
+      border-radius: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: opacity 180ms var(--ease-smooth), background 180ms var(--ease-smooth), color 180ms var(--ease-smooth), transform 180ms var(--ease-smooth);
+      transition: opacity 180ms var(--ease-smooth), color 180ms var(--ease-smooth), transform 180ms var(--ease-smooth);
     }
 
     .user-bar-btn:hover {
       opacity: 1;
       color: var(--accent);
-      background: color-mix(in srgb, var(--accent) 12%, transparent);
-      transform: translateY(-1px);
+      transform: none;
     }
 
 
@@ -580,6 +585,7 @@ body.bg-pattern-sparkles {
       position: relative;
       z-index: 3;
       background: var(--sidebar-bg, var(--panel));
+      border-bottom: 1px solid var(--ui-divider);
     }
     .sidebar-hamburger {
       display: none !important; /* external #hamburger-btn is the only toggle */
@@ -593,7 +599,7 @@ body.bg-pattern-sparkles {
       display: flex;
       flex-direction: column;
       gap: 0;
-      padding: 10px 8px 8px;
+      padding: 8px 8px 0;
       min-height: 0;
       transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
     }
@@ -602,9 +608,12 @@ body.bg-pattern-sparkles {
       align-items: center;
       flex-shrink: 0;
       min-height: 24px;
+      width: 100%;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--ui-divider);
     }
     .sidebar-brand-title {
-      font-size: 1rem;
+      font-size: 1.08rem;
       font-weight: 600;
       line-height: 1.35;
       color: var(--brand-color, var(--red));
@@ -615,21 +624,30 @@ body.bg-pattern-sparkles {
       left: -10px;
     }
     .sidebar-sep {
-      display: none;
+      display: block;
+      height: 1px;
+      margin: 6px 0;
+      background: var(--ui-divider);
+      opacity: 1;
     }
     #sidebar-search-btn,
     #sidebar-new-chat-btn {
       margin: 0;
       padding: 8px 8px;
+      border-radius: 0;
+      border-bottom: 1px solid var(--ui-divider);
     }
     #sessions-section {
       margin-top: -1px;
     }
     #tools-section {
       margin-top: 1px;
+      border-top: 1px solid var(--ui-divider);
     }
     #tools-section .list-item {
       padding: 8px 8px;
+      border-radius: 0;
+      border-bottom: 1px solid var(--ui-divider);
     }
     .sidebar.right-side .sidebar-header {
       justify-content: flex-start;
@@ -637,11 +655,11 @@ body.bg-pattern-sparkles {
       padding-right: 40px;
     }
     .sidebar.right-side .sidebar-inner {
-      padding: 8px;
+      padding: 8px 8px 0;
     }
     .sidebar.right-side .sidebar-brand {
       justify-content: flex-start;
-      padding: 2px 30px 4px 4px;
+      padding: 2px 30px 8px 4px;
     }
     .sidebar.right-side .sidebar-brand-title {
       margin-left: 10px;
@@ -1177,15 +1195,17 @@ body.bg-pattern-sparkles {
     /* Section header row — identical sizing to .list-item */
     .section-header-flex {
       display: flex; align-items: center; gap: 6px;
-      padding: 8px 8px; margin: 1px 0; border-radius: 4px;
+      padding: 8px 8px; margin: 1px 0; border-radius: 0;
       background: transparent; cursor: pointer;
-      transition: background 180ms var(--ease-smooth), color 180ms var(--ease-smooth), transform 180ms var(--ease-smooth);
+      transition: color 180ms var(--ease-smooth), transform 180ms var(--ease-smooth);
       height: 29px;
       box-sizing: border-box;
+      border-bottom: 1px solid var(--ui-divider);
     }
     .section-header-flex:hover {
-      background: color-mix(in srgb, var(--accent) 10%, transparent);
-      transform: translateX(1px);
+      background: transparent;
+      color: var(--accent);
+      transform: none;
     }
     .section-header-flex::after { content: none; }
     .section-header-flex h4::before { content: none; }
@@ -1196,7 +1216,7 @@ body.bg-pattern-sparkles {
       flex: 1; cursor: pointer; user-select: none;
       display: flex; align-items: center; gap: 6px;
       margin: 0; padding: 0; border: none;
-      font-size: 10px; font-weight: 400; font-family: inherit;
+      font-size: 11px; font-weight: 400; font-family: inherit;
       /* 1.3 (not 1) so Fira Code's tall glyph box isn't vertically clipped in
          Chromium/Edge — mirrors the .list-item fix. The title is flex-centred
          in a fixed-height (29px) header, so this adds headroom without reflow. */
@@ -1277,15 +1297,15 @@ body.bg-pattern-sparkles {
     .section-header-flex > div { display: flex; align-items: center; gap: 2px; }
     .section-header-btn {
       all: unset;
-      cursor: pointer; opacity: 0.4; padding: 1px 3px; border-radius: 4px;
+      cursor: pointer; opacity: 0.4; padding: 1px 3px; border-radius: 0;
       display: inline-flex; align-items: center; justify-content: center;
-      transition: opacity 180ms var(--ease-smooth), background 180ms var(--ease-smooth), color 180ms var(--ease-smooth), transform 180ms var(--ease-smooth);
+      transition: opacity 180ms var(--ease-smooth), color 180ms var(--ease-smooth), transform 180ms var(--ease-smooth);
     }
     .section-header-btn:hover {
       opacity: 1;
       color: var(--accent);
-      background: color-mix(in srgb, var(--accent) 12%, transparent);
-      transform: translateY(-1px);
+      background: transparent;
+      transform: none;
     }
     .section-header-btn.active { opacity: 0.9; color: var(--accent); }
     .section-header-btn svg { width: 12px; height: 12px; }
@@ -1312,9 +1332,9 @@ body.bg-pattern-sparkles {
     /* Collapse chevron */
     .section-collapse-btn {
       all: unset;
-      cursor: pointer; display: inline-flex; align-items: center; padding: 0 2px; border-radius: 4px;
+      cursor: pointer; display: inline-flex; align-items: center; padding: 0 2px; border-radius: 0;
     }
-    .section-collapse-btn:hover { background: color-mix(in srgb, var(--fg) 8%, transparent); }
+    .section-collapse-btn:hover { background: transparent; }
     .section-collapse-chevron { display: inline-flex; opacity: 0.3; transition: transform 0.2s, opacity 0.15s; }
     .section-collapse-btn:hover .section-collapse-chevron { opacity: 0.6; }
     .section.collapsed .section-collapse-chevron { transform: rotate(-90deg); opacity: 0.5; }
@@ -1381,6 +1401,36 @@ body.bg-pattern-sparkles {
     }
     @keyframes spin { to { transform: rotate(360deg); } }
     .row { display:flex; gap:6px; align-items:center; }
+    .sidebar .list-item,
+    .sidebar .models-row {
+      border-radius: 0;
+      border-bottom: 1px solid var(--ui-divider);
+    }
+    .sidebar .list-item:last-child,
+    .sidebar .models-row:last-child {
+      border-bottom-color: transparent;
+    }
+    .sidebar .list-item:hover,
+    .sidebar .models-row:hover {
+      background: transparent;
+      border-color: var(--ui-divider);
+      color: var(--accent);
+      transform: none;
+      box-shadow: none;
+    }
+    .sidebar .list-item:focus-visible,
+    .sidebar .models-row:focus-visible {
+      box-shadow: none;
+    }
+    .sidebar .list-item .grow,
+    .sidebar .models-row .grow,
+    .sidebar .list-item span,
+    .sidebar .section-header-flex h4,
+    .sidebar .section-header-flex .section-title,
+    .sidebar .user-bar-name,
+    .sidebar .sidebar-brand-title {
+      letter-spacing: 0;
+    }
     .list-item:hover,
     .models-row:hover {
       background: color-mix(in srgb, var(--accent) 10%, transparent);
@@ -1776,6 +1826,10 @@ body.bg-pattern-sparkles {
       color: var(--fg);
       font-size: 9.75px;
     }
+    .sidebar .list-item span,
+    .sidebar .list-item .grow {
+      font-size: 10.5px;
+    }
     .grow {
       flex: 1;
       overflow: hidden;
@@ -1788,7 +1842,7 @@ body.bg-pattern-sparkles {
       border:1px solid color-mix(in srgb, var(--border) 82%, transparent);
       font-family:inherit;
       padding:6.9px;
-      border-radius: 6px;
+      border-radius: 2px;
       transition:
         background 180ms var(--ease-smooth),
         border-color 180ms var(--ease-smooth),
@@ -1817,6 +1871,46 @@ body.bg-pattern-sparkles {
       color-scheme: dark;
       background-color: var(--select-bg);
       color: var(--select-fg);
+    }
+    input[type="text"],
+    input[type="password"],
+    input[type="email"],
+    input[type="search"],
+    input[type="url"],
+    input[type="tel"],
+    input[type="number"],
+    textarea,
+    select {
+      border-width: 0 0 1px 0;
+      border-style: solid;
+      border-color: color-mix(in srgb, var(--border) 70%, transparent);
+      background: transparent;
+      box-shadow: none;
+      border-radius: 0;
+    }
+    input[type="text"]:focus,
+    input[type="password"]:focus,
+    input[type="email"]:focus,
+    input[type="search"]:focus,
+    input[type="url"]:focus,
+    input[type="tel"]:focus,
+    input[type="number"]:focus,
+    textarea:focus,
+    select:focus {
+      border-color: color-mix(in srgb, var(--accent) 68%, var(--border));
+      box-shadow: none;
+    }
+    input[type="text"]:focus-visible,
+    input[type="password"]:focus-visible,
+    input[type="email"]:focus-visible,
+    input[type="search"]:focus-visible,
+    input[type="url"]:focus-visible,
+    input[type="tel"]:focus-visible,
+    input[type="number"]:focus-visible,
+    textarea:focus-visible,
+    select:focus-visible {
+      outline: none;
+      box-shadow: none;
     }
     select option,
     select optgroup {
@@ -2241,7 +2335,7 @@ body.bg-pattern-sparkles {
     /* Unified chat input bar */
     .chat-input-bar {
       background: var(--input-bg, var(--panel));
-      border: 1px solid color-mix(in srgb, var(--input-border, var(--border)) 68%, transparent);
+      border: 1px solid color-mix(in srgb, var(--input-border, var(--border)) 56%, transparent);
       border-radius: 14px;
       padding: 10px 12px;
       display: flex;
@@ -2251,12 +2345,12 @@ body.bg-pattern-sparkles {
       margin-left: auto;
       margin-right: auto;
       width: 100%;
-      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.22);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
       transition: border-color 180ms var(--ease-smooth), box-shadow 180ms var(--ease-smooth), background 180ms var(--ease-smooth), margin 0.3s ease, max-width 0.3s ease;
     }
     .chat-input-bar:focus-within {
-      border-color: color-mix(in srgb, var(--accent) 56%, var(--input-border, var(--border)));
-      box-shadow: 0 16px 42px rgba(0, 0, 0, 0.26), 0 0 0 2px var(--focus-ring);
+      border-color: color-mix(in srgb, var(--accent) 42%, var(--input-border, var(--border)));
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18), 0 0 0 2px var(--ui-focus-ring);
     }
     .chat-input-top {
       width: 100%;
@@ -4197,6 +4291,7 @@ body.bg-pattern-sparkles {
       .sidebar-header {
         padding: 18px 12px 8px 12px;
         min-height: 44px;
+        border-bottom: 1px solid var(--ui-divider);
       }
       .sidebar-brand-title {
         font-size: 1.2rem;
@@ -4204,15 +4299,16 @@ body.bg-pattern-sparkles {
       }
       /* Sidebar inner — bigger spacing */
       .sidebar-inner {
-        padding: 12px 10px 12px !important;
-        gap: 4px !important;
+        padding: 12px 10px 0 !important;
+        gap: 0 !important;
       }
       /* Section headers — match list item sizing */
       .section-header-flex {
         padding: 12px 10px !important;
         height: 48px !important;
-        border-radius: 8px;
+        border-radius: 0;
         box-sizing: border-box;
+        border-bottom: 1px solid var(--ui-divider);
       }
       .section-header-flex h4,
       .section-header-flex .section-title {
@@ -4230,8 +4326,9 @@ body.bg-pattern-sparkles {
         padding: 12px 10px !important;
         min-height: 48px;
         font-size: 14px;
-        border-radius: 8px;
+        border-radius: 0;
         gap: 10px !important;
+        border-bottom: 1px solid var(--ui-divider);
       }
       .list-item .grow {
         font-size: 14px !important;
@@ -4252,7 +4349,7 @@ body.bg-pattern-sparkles {
       /* Section separator — more breathing room */
       .section {
         margin-top: 4px;
-        border-radius: 8px;
+        border-radius: 0;
       }
       /* Wave accent — slightly bigger on mobile */
       .section-header-flex h4::before {
@@ -5019,16 +5116,16 @@ body.bg-pattern-sparkles {
     }
     .modal-content {
       background:var(--panel);
-      border:1px solid var(--border);
+      border:1px solid var(--ui-border);
       width:min(520px, 92vw); max-height:85vh; padding:10px;
-      box-sizing:border-box; font-size:14px;
+      box-sizing:border-box; font-size:13px;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       letter-spacing: -0.015em;
       display:flex; flex-direction:column;
       position:relative;
       overflow-y:auto;
       border-radius:10px;
-      box-shadow:0 8px 32px rgba(0,0,0,0.45);
+      box-shadow:0 6px 22px rgba(0,0,0,0.32);
       pointer-events:auto;
       animation: modal-enter 0.25s ease-out both;
     }
@@ -5058,6 +5155,8 @@ body.bg-pattern-sparkles {
          the content uses (var(--bg) or the default var(--panel)) and stays
          opaque, so the sticky header still masks scrolled content. */
       background-color: inherit;
+      border-bottom: 1px solid var(--ui-divider);
+      padding-bottom: 6px;
     }
     .modal-header:active { cursor:grabbing; }
     /* Edge/corner window resize (windowResize.js). While a resize is in
@@ -22606,14 +22705,15 @@ input.settings-select::placeholder { color: color-mix(in srgb, var(--fg) 35%, tr
 }
 .settings-input {
   flex: 1;
-  padding: 5px 8px;
+  padding: 4px 8px;
   background: var(--bg);
-  border: 1px solid var(--border);
+  border: 1px solid var(--ui-border);
   border-radius: 6px;
   color: var(--fg);
   font-family: inherit;
   font-size: 12px;
-  transition: border-color 0.15s;
+  line-height: 1.25;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
 }
 /* Hide the native number-input spinner arrows (e.g. SMTP/IMAP Port) — they
    render unstyled and ugly. Field still accepts only numbers. */
@@ -22628,7 +22728,8 @@ input.settings-select::placeholder { color: color-mix(in srgb, var(--fg) 35%, tr
 }
 .settings-input:focus {
   outline: none;
-  border-color: var(--red);
+  border-color: color-mix(in srgb, var(--accent) 66%, var(--border));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 /* ── Contacts manager (Settings → Integrations → CardDAV) ── */
 .contacts-add-row {

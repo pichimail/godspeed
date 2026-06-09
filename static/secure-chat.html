@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Chat - GodSpeed</title>
+    <link rel="stylesheet" href="/static/css/secure-chat.css">
+</head>
+<body>
+    <div class="secure-chat-container">
+
+        <!-- Sidebar with Online Users -->
+        <aside class="chat-sidebar">
+            <div class="sidebar-header">
+                <h2>Secure Chat</h2>
+                <div class="connection-status connected">
+                    <span class="status-dot"></span>
+                    <span>Connected</span>
+                </div>
+            </div>
+
+            <div class="user-profile">
+                <div class="user-avatar large">U</div>
+                <div class="user-info">
+                    <div class="user-name" id="current-user-name">User</div>
+                    <div class="user-status online">Online</div>
+                </div>
+            </div>
+
+            <div class="online-users-section">
+                <h3>Online Users (<span id="online-count">0</span>)</h3>
+                <div id="online-users-list" class="online-users-list">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <button class="btn-secondary" onclick="secureChatModule.createGroup()">
+                    Create Group
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="chat-main">
+
+            <!-- Chat Header -->
+            <header class="chat-header">
+                <div class="chat-info">
+                    <h2 id="chat-room-name">Select a user to chat</h2>
+                    <div id="typing-indicator" class="typing-indicator" style="display: none;">
+                        Typing...
+                    </div>
+                </div>
+
+                <div class="chat-actions">
+                    <button class="btn-icon" title="Audio Call" id="audio-call-btn">
+                        📞
+                    </button>
+                    <button class="btn-icon" title="Video Call" id="video-call-btn">
+                        📹
+                    </button>
+                    <button class="btn-icon" title="Settings" id="settings-btn">
+                        ⚙️
+                    </button>
+                </div>
+            </header>
+
+            <!-- Messages Container -->
+            <div class="messages-container" id="chat-messages">
+                <div class="welcome-message">
+                    <h2>Welcome to Secure Chat</h2>
+                    <p>End-to-end encrypted messaging with audio/video calls</p>
+                    <p>Select a user from the sidebar to start chatting</p>
+                </div>
+            </div>
+
+            <!-- Message Input -->
+            <div class="message-input-container">
+                <button class="btn-icon" title="Attach File">
+                    📎
+                </button>
+                <textarea
+                    id="message-input"
+                    placeholder="Type a message... (Press Enter to send)"
+                    rows="1"
+                ></textarea>
+                <button class="btn-icon" title="Emoji">
+                    😊
+                </button>
+                <button class="btn-primary" id="send-message-btn">
+                    Send
+                </button>
+            </div>
+
+        </main>
+
+        <!-- Video Call Container -->
+        <div id="call-container" class="call-container" style="display: none;">
+            <div class="call-header">
+                <h3 id="call-status">Connecting...</h3>
+                <div class="call-timer" id="call-timer">00:00</div>
+            </div>
+
+            <div class="video-grid">
+                <div class="video-wrapper">
+                    <video id="remote-video" autoplay playsinline></video>
+                    <div class="video-label">Remote</div>
+                </div>
+                <div class="video-wrapper local">
+                    <video id="local-video" autoplay muted playsinline></video>
+                    <div class="video-label">You</div>
+                </div>
+            </div>
+
+            <div class="call-controls">
+                <button class="call-btn" id="mute-audio-btn" title="Mute/Unmute">
+                    🎤
+                </button>
+                <button class="call-btn" id="mute-video-btn" title="Enable/Disable Video">
+                    📹
+                </button>
+                <button class="call-btn danger" id="end-call-btn" title="End Call">
+                    📞
+                </button>
+                <button class="call-btn" id="fullscreen-btn" title="Fullscreen">
+                    ⛶
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Incoming Call Modal -->
+    <div id="incoming-call-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="incoming-call-header">
+                <h2>Incoming Call</h2>
+            </div>
+
+            <div class="incoming-call-body">
+                <div class="caller-avatar">📞</div>
+                <h3 id="caller-name">Unknown</h3>
+                <p><span id="call-type-display">Audio</span> Call</p>
+            </div>
+
+            <div class="incoming-call-actions">
+                <button class="btn-success" id="accept-call-btn">
+                    Accept
+                </button>
+                <button class="btn-danger" id="reject-call-btn">
+                    Reject
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="notification-toast" class="notification-toast" style="display: none;">
+        <span id="notification-message"></span>
+    </div>
+
+    <script type="module">
+        import secureChatModule from '/static/js/secure-chat.js';
+
+        // Initialize chat with user ID
+        // TODO: Get actual user ID from auth
+        const userId = 'user_' + Math.random().toString(36).substr(2, 9);
+        document.getElementById('current-user-name').textContent = userId;
+
+        secureChatModule.init(userId);
+
+        // Make it globally accessible
+        window.secureChatModule = secureChatModule;
+    </script>
+</body>
+</html>

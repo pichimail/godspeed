@@ -3506,6 +3506,24 @@ function startGodSpeedApp() {
     }
   });
 
+  // WhatsApp Assistants (dynamic per-contact name/behaviour/permissions + persistent sessions)
+  const waTitle = document.getElementById('whatsapp-section-title');
+  if (waTitle) {
+    waTitle.addEventListener('click', () => {
+      const main = document.getElementById('main-content') || document.getElementById('chat-container') || document.body;
+      if (window.WA && window.WA.render) {
+        window.WA.render(main);
+      } else {
+        // Fallback: load script on demand if not yet executed
+        const s = document.createElement('script');
+        s.type = 'module';
+        s.src = '/static/js/whatsapp.js';
+        s.onload = () => { if (window.WA) window.WA.render(main); };
+        document.head.appendChild(s);
+      }
+    });
+  }
+
   // Rail chats — click to open the completed background session
   const _railChatsBtn = el('rail-chats');
   if (_railChatsBtn) {

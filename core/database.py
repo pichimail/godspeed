@@ -2,7 +2,7 @@ import os
 import logging
 import sqlite3
 from datetime import datetime, timezone
-from sqlalchemy import event, create_engine, Column, String, Text, Boolean, DateTime, Integer, ForeignKey, JSON, Index, func, text
+from sqlalchemy import event, create_engine, Column, String, Text, Boolean, DateTime, Integer, ForeignKey, JSON, Index, func, text, UniqueConstraint
 from sqlalchemy.engine import Engine
 from sqlalchemy.types import TypeDecorator
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
@@ -519,6 +519,55 @@ class CrewMember(TimestampMixin, Base):
 
     session = relationship("Session", foreign_keys=[session_id],
                            backref=backref("crew_member", uselist=False))
+
+
+class WhatsappInstance(TimestampMixin, Base):
+    """A linked WhatsApp number/session for a user, managed via external bridge (Evolution API or Waha)."""
+    __tablename__ = "whatsapp_instances"
+
+    id = Column(String, primary_key=True, index=True)
+    owner = Column(String, nullable=True, index=True)
+    phone_number = Column(String, nullable=True)           # normalized e.g. +1234567890
+    bridge_type = Column(String, default="evolution")      # "evolution" | "waha"
+    bridge_instance_id = Column(String, nullable=False, index=True)  # name/key inside the bridge
+    status = Column(String, default="disconnected")        # disconnected | qr_pending | connected | error | pairing
+    qr_code = Column(Text, nullable=True)                  # last known QR as data: URI or raw base64 string
+    last_connected_at = Column(DateTime, nullable=True)
+    last_message_at = Column(DateTime, nullable=True)
+    enabled = Column(Boolean, default=True)
+    error_message = Column(Text, nullable=True)
+
+
+class WhatsappContactConfig(TimestampMixin, Base):
+    """Per-owner, per-instance, per-JID (or global "*") configuration for the Godspeed WhatsApp assistant.
+
+    Supports name edit, behavior (personality) edit, mode (conversational vs agent),
+    tool permissions, and other dynamic rules. Each contact gets its own persistent
+    Godspeed session for history/context.
+    """
+    __tablename__ = "whatsapp_contact_configs"
+
+    id = Column(String, primary_key=True, index=True)
+    owner = Column(String, nullable=True, index=True)
+    instance_id = Column(String, ForeignKey("whatsapp_instances.id", ondelete="CASCADE"), nullable=False, index=True)
+    jid = Column(String, nullable=False, index=True)       # "1234567890@c.us", "groupid@g.us", or "*" for global defaults
+    contact_name = Column(String, nullable=True)           # cached friendly name from WhatsApp
+
+    # --- Customizable by user (name, behaviour, permissions) ---
+    display_name = Column(String, nullable=True)           # how the assistant presents itself to this contact ("Alex", "Support Bot" etc.)
+    personality = Column(Text, nullable=True)              # the behavior / system prompt text (merged over global)
+    mode = Column(String, default="conversational")        # "conversational" (fast LLM) | "agent" (full tool-using agent loop)
+    enabled_tools = Column(Text, nullable=True)            # JSON array of tool names, "all", or null (inherit/limited default)
+    permissions = Column(JSON, nullable=True)              # structured: {"full_agent": false, "allow_search": true, "allow_memory": true, "max_reply_length": 1800, "respond_to_groups": false, "business_hours": {...}, ...}
+    enabled = Column(Boolean, default=True)
+
+    # Optional link to a rich CrewMember for advanced users
+    crew_member_id = Column(String, nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint("owner", "instance_id", "jid", name="_wa_config_owner_instance_jid_uc"),
+        Index("ix_wa_configs_owner_instance_jid", "owner", "instance_id", "jid"),
+    )
 
 
 class ScheduledTask(TimestampMixin, Base):
@@ -1101,6 +1150,7 @@ def _migrate_assign_legacy_owner():
             "scheduled_tasks", "task_runs", "crew_members",
             "gallery_albums", "gallery_people", "user_tool_data",
             "api_tokens", "webhooks",
+            "whatsapp_instances", "whatsapp_contact_configs",
         ]
         for table in tables:
             try:
@@ -1417,6 +1467,91 @@ def _migrate_add_assistant_columns():
         logging.getLogger(__name__).warning(f"assistant columns migration: {e}")
 
 
+def _migrate_add_whatsapp_tables():
+    """Create whatsapp_instances and whatsapp_contact_configs tables (and indexes) for new installs.
+    For existing DBs this is a no-op if tables already exist. Uses raw SQL for robustness across SQLite.
+    Also adds any future columns via PRAGMA checks in one place.
+    """
+    if not DATABASE_URL.startswith("sqlite"):
+        try:
+            Base.metadata.create_all(bind=engine, tables=[
+                WhatsappInstance.__table__,
+                WhatsappContactConfig.__table__,
+            ])
+        except Exception as e:
+            logger.warning(f"whatsapp tables create_all (non-sqlite) warning: {e}")
+        return
+
+    db_path = DATABASE_URL.replace("sqlite:///", "")
+    if db_path == ":memory:":
+        return
+    conn = None
+    try:
+        conn = sqlite3.connect(db_path)
+        # whatsapp_instances
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS whatsapp_instances (
+                id TEXT PRIMARY KEY,
+                owner TEXT,
+                phone_number TEXT,
+                bridge_type TEXT DEFAULT 'evolution',
+                bridge_instance_id TEXT NOT NULL,
+                status TEXT DEFAULT 'disconnected',
+                qr_code TEXT,
+                last_connected_at DATETIME,
+                last_message_at DATETIME,
+                enabled INTEGER DEFAULT 1,
+                error_message TEXT,
+                created_at DATETIME,
+                updated_at DATETIME
+            )
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS ix_whatsapp_instances_owner ON whatsapp_instances(owner)")
+        conn.execute("CREATE INDEX IF NOT EXISTS ix_whatsapp_instances_bridge_instance_id ON whatsapp_instances(bridge_instance_id)")
+
+        # whatsapp_contact_configs
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS whatsapp_contact_configs (
+                id TEXT PRIMARY KEY,
+                owner TEXT,
+                instance_id TEXT NOT NULL,
+                jid TEXT NOT NULL,
+                contact_name TEXT,
+                display_name TEXT,
+                personality TEXT,
+                mode TEXT DEFAULT 'conversational',
+                enabled_tools TEXT,
+                permissions TEXT,
+                enabled INTEGER DEFAULT 1,
+                crew_member_id TEXT,
+                created_at DATETIME,
+                updated_at DATETIME
+            )
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS ix_whatsapp_contact_configs_owner ON whatsapp_contact_configs(owner)")
+        conn.execute("CREATE INDEX IF NOT EXISTS ix_whatsapp_contact_configs_instance ON whatsapp_contact_configs(instance_id)")
+        conn.execute("CREATE INDEX IF NOT EXISTS ix_whatsapp_contact_configs_jid ON whatsapp_contact_configs(jid)")
+        conn.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS _wa_config_owner_instance_jid_uc
+            ON whatsapp_contact_configs(owner, instance_id, jid)
+        """)
+
+        # Future columns (use raw string, not SQLAlchemy text, because we are on a raw sqlite3 connection)
+        cols = [r[1] for r in conn.execute("PRAGMA table_info(whatsapp_contact_configs)")]
+        if "permissions" not in cols:
+            conn.execute("ALTER TABLE whatsapp_contact_configs ADD COLUMN permissions TEXT")
+        if "mode" not in cols:
+            conn.execute("ALTER TABLE whatsapp_contact_configs ADD COLUMN mode TEXT DEFAULT 'conversational'")
+
+        conn.commit()
+        logger.info("WhatsApp tables ensured (instances + contact_configs)")
+    except Exception as e:
+        logging.getLogger(__name__).warning(f"whatsapp tables migration: {e}")
+    finally:
+        if conn:
+            conn.close()
+
+
 
 
 
@@ -1621,6 +1756,7 @@ def init_db():
     _migrate_drop_ping_notes_tasks()
     _migrate_add_crew_member_id()
     _migrate_add_assistant_columns()
+    _migrate_add_whatsapp_tables()
     _migrate_add_email_smtp_security()
     _migrate_seed_email_account()
     _migrate_add_calendar_metadata()

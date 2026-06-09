@@ -79,8 +79,8 @@ logger = logging.getLogger(__name__)
 # and passed to FastAPI so we can use the modern context-manager lifecycle
 # instead of the deprecated @app.on_event("startup"/"shutdown") decorators.
 app = FastAPI(
-    title="AI Chat Application",
-    description="Comprehensive AI chat with memory, research, and multi-modal capabilities",
+    title="GodSpeed",
+    description="Self-hosted AI workspace with memory, research, documents, and tools",
     version="1.0.0",
 )
 
@@ -717,6 +717,18 @@ app.include_router(setup_vault_routes())
 # Contacts (CardDAV)
 from routes.contacts_routes import setup_contacts_routes
 app.include_router(setup_contacts_routes())
+
+# WhatsApp AI Assistants (Evolution / Waha bridge + per-contact persistent sessions + dynamic personas)
+from routes.whatsapp_routes import router as whatsapp_router
+app.include_router(whatsapp_router)
+
+# Mac System Tools (cleanup, storage, duplicates, dev tools)
+from routes.system_tools_routes import get_system_tools_router
+app.include_router(get_system_tools_router())
+
+# Secure Chat with Audio/Video Calls
+from routes.secure_chat_routes import get_secure_chat_router
+app.include_router(get_secure_chat_router())
 
 from companion import setup_companion_routes
 app.include_router(setup_companion_routes())

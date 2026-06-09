@@ -4,6 +4,9 @@ __pycache__/
 *.pyo
 *.egg-info/
 dist/
+!dist/
+!dist/chrome-assistant/
+!dist/chrome-assistant/**
 build/
 !static/js/editor/build/
 venv/

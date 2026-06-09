@@ -805,6 +805,16 @@
         </div>
       </div>
 
+      <!-- WhatsApp AI Assistants -->
+      <div class="section" id="whatsapp-section">
+        <div class="section-header-flex">
+          <span class="section-title" id="whatsapp-section-title" style="cursor:pointer;" title="WhatsApp Assistants — per-contact behaviour, name &amp; permissions">
+            <svg class="section-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>WhatsApp</span>
+          </span>
+        </div>
+      </div>
+
       <div class="section" id="models-section">
         <div class="section-header-flex">
           <span class="section-title"> Models</span>
@@ -920,6 +930,28 @@
           </svg>
           <span class="grow">Tasks</span>
           <span id="assistant-notif-dot" class="sidebar-notif-dot" style="display:none"></span>
+        </div>
+
+        <div class="list-item" id="tool-system-tools-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            style="flex-shrink:0;opacity:0.5;">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+            <circle cx="12" cy="12" r="2"/>
+          </svg>
+          <span class="grow">System Tools</span>
+        </div>
+
+        <div class="list-item" id="tool-secure-chat-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            style="flex-shrink:0;opacity:0.5;">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="11" r="1" fill="currentColor"/>
+            <circle cx="16" cy="11" r="1" fill="currentColor"/>
+            <circle cx="8" cy="11" r="1" fill="currentColor"/>
+          </svg>
+          <span class="grow">Secure Chat</span>
         </div>
 
         <div class="list-item" id="tool-theme-btn">
@@ -2331,6 +2363,7 @@
 <script type="module" src="/static/js/models.js"></script>  <!-- This must come BEFORE app.js -->
 <script type="module" src="/static/js/rag.js"></script>
 <script type="module" src="/static/js/presets.js"></script>
+<script type="module" src="/static/js/whatsapp.js"></script>
 <script type="module" src="/static/js/search.js"></script>
 <script type="module" src="/static/js/spinner.js"></script>
 <script type="module" src="/static/js/tts-ai.js"></script>
@@ -2347,6 +2380,8 @@
 <script type="module" src="/static/js/theme.js"></script>
 <script type="module" src="/static/js/censor.js"></script>
 <script type="module" src="/static/js/settings.js"></script>
+<script type="module" src="/static/js/system-tools.js"></script>
+<script type="module" src="/static/js/secure-chat-nav.js"></script>
 <script type="module" src="/static/js/admin.js"></script>
 <script type="module" src="/static/js/assistant.js"></script>
 <script type="module" src="/static/app.js"></script>  <!-- app.js must be LAST -->

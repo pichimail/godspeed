@@ -1,0 +1,431 @@
+/* Mac System Tools Panel Styles */
+
+#system-tools-panel {
+  display: none;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Health Cards */
+.health-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.health-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 20px;
+  color: white;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.health-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.health-card.cpu { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.health-card.memory { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.health-card.disk { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.health-card.battery { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+
+.health-icon {
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+
+.health-label {
+  font-size: 14px;
+  opacity: 0.9;
+  margin-bottom: 4px;
+}
+
+.health-value {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.health-detail {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* Disk Usage Bar */
+.disk-usage-bar {
+  width: 100%;
+  height: 24px;
+  background: #e0e0e0;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.disk-usage-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  transition: width 0.3s ease;
+}
+
+.disk-usage-stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #666;
+}
+
+/* Storage Analysis */
+.storage-items {
+  margin-top: 20px;
+}
+
+.storage-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid #e0e0e0;
+  transition: background 0.2s;
+}
+
+.storage-item:hover {
+  background: #f5f5f5;
+}
+
+.storage-item-icon {
+  font-size: 24px;
+  margin-right: 12px;
+}
+
+.storage-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.storage-item-name {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.storage-item-path {
+  font-size: 12px;
+  color: #666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.storage-item-size {
+  font-size: 14px;
+  font-weight: bold;
+  color: #667eea;
+  margin-left: 12px;
+}
+
+/* Cleanup Section */
+.cleanup-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.cleanup-btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.cleanup-btn:hover {
+  transform: scale(1.05);
+}
+
+.cleanup-btn.light { background: #43e97b; color: white; }
+.cleanup-btn.deep { background: #f5576c; color: white; }
+.cleanup-btn.docker { background: #4facfe; color: white; }
+.cleanup-btn.node { background: #ffbe0b; color: white; }
+
+.cleanup-summary {
+  background: #f0f7ff;
+  border-left: 4px solid #667eea;
+  padding: 16px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.cleanup-summary h3 {
+  margin: 0 0 8px 0;
+  color: #667eea;
+}
+
+.cleanup-total {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+
+.cleanup-targets {
+  display: grid;
+  gap: 8px;
+}
+
+.cleanup-target {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #fafafa;
+  border-radius: 4px;
+}
+
+.target-name {
+  font-weight: 500;
+}
+
+.target-freed {
+  color: #43e97b;
+  font-weight: bold;
+}
+
+/* Node Modules */
+.node-modules-summary {
+  background: #fff3cd;
+  border-left: 4px solid #ffbe0b;
+  padding: 16px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.node-modules-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.node-module-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.module-path {
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.module-size {
+  font-weight: bold;
+  color: #ffbe0b;
+}
+
+/* Duplicates */
+.duplicates-summary {
+  background: #ffe5ec;
+  border-left: 4px solid #f5576c;
+  padding: 16px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.duplicates-list {
+  max-height: 500px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+.duplicate-group {
+  background: #fafafa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.duplicate-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.duplicate-files {
+  display: grid;
+  gap: 6px;
+}
+
+.duplicate-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.duplicate-file:hover {
+  background: #fff;
+}
+
+.duplicate-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.duplicate-path {
+  font-family: monospace;
+  font-size: 13px;
+  color: #666;
+}
+
+/* Ports Table */
+.ports-table {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.port-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #fafafa;
+  border-radius: 8px;
+}
+
+.port-number {
+  font-family: monospace;
+  font-weight: bold;
+  color: #667eea;
+  min-width: 60px;
+}
+
+.port-command {
+  flex: 1;
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.port-pid {
+  font-size: 12px;
+  color: #666;
+  min-width: 80px;
+}
+
+/* Buttons */
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary {
+  background: #667eea;
+  color: white;
+}
+
+.btn-danger {
+  background: #f5576c;
+  color: white;
+}
+
+.btn-success {
+  background: #43e97b;
+  color: white;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+/* Sections */
+.system-tools-section {
+  margin-bottom: 40px;
+}
+
+.system-tools-section h2 {
+  font-size: 24px;
+  margin-bottom: 16px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-icon {
+  font-size: 32px;
+}
+
+/* Tabs */
+.system-tools-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.system-tools-tab {
+  padding: 12px 24px;
+  border: none;
+  background: none;
+  font-weight: 600;
+  cursor: pointer;
+  color: #666;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+}
+
+.system-tools-tab:hover {
+  color: #667eea;
+}
+
+.system-tools-tab.active {
+  color: #667eea;
+  border-bottom-color: #667eea;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .health-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .cleanup-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .storage-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .storage-item-size {
+    margin-left: 0;
+    margin-top: 8px;
+  }
+}

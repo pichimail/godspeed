@@ -133,20 +133,20 @@
     transition: padding-top 0.2s ease;
   }
   .card {
-    background: color-mix(in srgb, var(--panel) 94%, var(--bg)); border: 1px solid var(--border); border-radius: 12px;
-    padding: 2rem; width: 360px; max-width: 90vw;
+    background: color-mix(in srgb, var(--panel) 94%, var(--bg)); border: 1px solid var(--ui-border); border-radius: 10px;
+    padding: 1.5rem 1.4rem 1.35rem; width: 344px; max-width: 90vw;
     /* Sit above the bg-effect canvases (which spawn at z-index:0) so the
        falling rain / drifting petals / etc. don't streak across the
        login form. */
     position: relative; z-index: 1;
-    box-shadow: 0 22px 60px rgba(0, 0, 0, 0.42), inset 0 1px 0 color-mix(in srgb, var(--fg) 8%, transparent);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.32), inset 0 1px 0 color-mix(in srgb, var(--fg) 6%, transparent);
   }
   .logo {
-    text-align: center; margin-bottom: 1.5rem;
+    text-align: center; margin-bottom: 1.1rem;
   }
   .logo span {
     font-family: 'Fira Code', monospace;
-    font-size: 2rem; font-weight: 600;
+    font-size: 1.74rem; font-weight: 600;
     letter-spacing: 0.04em;
     /* Same gradient as the main app's welcome-screen "GodSpeed" title
        (static/style.css #welcome-screen .welcome-name) so the brand
@@ -156,16 +156,16 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  .setup-note { color: color-mix(in srgb, var(--fg) 74%, transparent); font-size: 0.8rem; margin-bottom: 1rem; text-align: center; }
-  label { display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: color-mix(in srgb, var(--fg) 78%, transparent); }
+  .setup-note { color: color-mix(in srgb, var(--fg) 74%, transparent); font-size: 0.76rem; margin-bottom: 0.85rem; text-align: center; line-height: 1.4; }
+  label { display: block; font-size: 0.78rem; margin-bottom: 0.28rem; color: color-mix(in srgb, var(--fg) 78%, transparent); letter-spacing: 0.01em; }
   input:not(.remember-check) {
-    width: 100%; padding: 0.6rem 0.8rem; margin-bottom: 1rem;
-    background: color-mix(in srgb, var(--panel) 82%, var(--bg)); border: 1px solid var(--border); border-radius: 6px;
-    color: var(--fg); font-size: 0.95rem; font-family: 'Fira Code', monospace;
+    width: 100%; padding: 0.45rem 0 0.5rem; margin-bottom: 1rem;
+    background: transparent; border: 0; border-bottom: 1px solid color-mix(in srgb, var(--border) 68%, transparent); border-radius: 0;
+    color: var(--fg); font-size: 0.86rem; font-family: 'Fira Code', monospace;
     transition: background 180ms var(--ease-smooth), border-color 180ms var(--ease-smooth), box-shadow 180ms var(--ease-smooth);
   }
-  input:not(.remember-check):hover { border-color: color-mix(in srgb, var(--accent) 58%, var(--border)); background: var(--surface-hover); }
-  input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--focus-ring); }
+  input:not(.remember-check):hover { border-bottom-color: color-mix(in srgb, var(--accent) 34%, var(--border)); background: transparent; }
+  input:focus { outline: none; border-bottom-color: color-mix(in srgb, var(--accent) 82%, var(--border)); box-shadow: none; }
   /* On touch devices keep inputs at >=16px so iOS Safari doesn't zoom the whole
      page when a field is focused (it auto-zooms any focused input under 16px).
      This page has its own inline styles, so it doesn't inherit the main app's
@@ -176,25 +176,32 @@
   }
   /* Clear, visible focus ring for keyboard users on every focusable control. */
   input:focus-visible, a:focus-visible, button:focus-visible {
-    outline: 2px solid var(--accent);
+    outline: 1px solid var(--accent);
     outline-offset: 2px;
-    box-shadow: 0 0 0 5px var(--focus-ring);
+    box-shadow: 0 0 0 3px var(--ui-focus-ring);
+  }
+  /* Inputs keep the underline-only treatment even when focused by mouse or keyboard. */
+  input:focus,
+  input:focus-visible {
+    outline: none;
+    box-shadow: none;
+    border-bottom-color: color-mix(in srgb, var(--accent) 82%, var(--border));
   }
   button {
     width: 100%;
     /* Asymmetric vertical padding nudges the label 1px down while keeping
        the button's total height the same as 0.7rem all-around. */
-    padding: calc(0.7rem + 1px) 0.7rem calc(0.7rem - 1px);
+    padding: calc(0.6rem + 1px) 0.7rem calc(0.6rem - 1px);
     border: none; border-radius: 6px;
-    background: var(--accent); color: #06111c; font-size: 1rem; cursor: pointer;
+    background: var(--accent); color: #06111c; font-size: 0.9rem; cursor: pointer;
     font-weight: 600; font-family: 'Fira Code', monospace;
-    box-shadow: 0 12px 30px color-mix(in srgb, var(--accent) 28%, transparent);
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--accent) 20%, transparent);
     transition: background 180ms var(--ease-smooth), color 180ms var(--ease-smooth), transform 180ms var(--ease-smooth), box-shadow 180ms var(--ease-smooth);
   }
-  button:hover { background: color-mix(in srgb, var(--accent) 82%, white); transform: translateY(-1px); box-shadow: 0 16px 36px color-mix(in srgb, var(--accent) 34%, transparent); }
+  button:hover { background: color-mix(in srgb, var(--accent) 82%, white); transform: translateY(-1px); box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 24%, transparent); }
   button:disabled { opacity: 0.5; cursor: not-allowed; }
-  .error { color: #e55; font-size: 0.85rem; margin-bottom: 0.75rem; display: none; }
-  .toggle { text-align: center; margin-top: calc(1rem + 4px); font-size: 0.85rem; color: color-mix(in srgb, var(--fg) 50%, transparent); }
+  .error { color: #e55; font-size: 0.76rem; margin-bottom: 0.65rem; display: none; line-height: 1.35; }
+  .toggle { text-align: center; margin-top: 0.9rem; font-size: 0.78rem; color: color-mix(in srgb, var(--fg) 50%, transparent); }
   .toggle a { color: var(--accent); cursor: pointer; text-decoration: none; }
   .toggle a:hover { text-decoration: underline; }
   .pw-wrapper { position: relative; margin-bottom: 1rem; }
@@ -240,7 +247,7 @@
   .remember-toggle .remember-dot {
     display: block; width: 10px; height: 10px; min-width: 10px; min-height: 10px;
     border-radius: 50%;
-    border: 2px solid color-mix(in srgb, var(--fg) 25%, transparent);
+    border: 1px solid color-mix(in srgb, var(--fg) 28%, transparent);
     background: transparent;
     transition: all 0.15s;
   }
@@ -254,7 +261,7 @@
   .logo-boat { width: 1.6rem; height: 1.6rem; margin-right: 0.4rem; vertical-align: -0.15em; color: var(--brand-color, var(--accent)); }
   .version-label {
     position: fixed; bottom: 12px; right: 16px;
-    font-size: 0.7rem; opacity: 0.25;
+    font-size: 0.65rem; opacity: 0.25;
     font-family: 'Fira Code', monospace;
     pointer-events: none; user-select: none;
   }
@@ -519,7 +526,7 @@
         form._totpMode = true;
         const totpWrap = document.createElement('div');
         totpWrap.style.cssText = 'margin-top:12px;';
-        totpWrap.innerHTML = '<label for="totp-input" style="font-size:0.85em;opacity:0.7;display:block;margin-bottom:4px;">2FA Code</label><input type="text" id="totp-input" placeholder="Enter 6-digit code" aria-label="Two-factor authentication code" autocomplete="one-time-code" inputmode="numeric" maxlength="8" style="width:100%;padding:10px 12px;background:var(--bg);color:var(--fg);border:1px solid var(--border);border-radius:8px;font-size:14px;box-sizing:border-box;text-align:center;letter-spacing:4px;">';
+        totpWrap.innerHTML = '<label for="totp-input" style="font-size:0.85em;opacity:0.7;display:block;margin-bottom:4px;">2FA Code</label><input type="text" id="totp-input" placeholder="Enter 6-digit code" aria-label="Two-factor authentication code" autocomplete="one-time-code" inputmode="numeric" maxlength="8" style="width:100%;padding:10px 0 8px;background:transparent;color:var(--fg);border:0;border-bottom:1px solid color-mix(in srgb, var(--border) 68%, transparent);border-radius:0;font-size:14px;box-sizing:border-box;text-align:center;letter-spacing:4px;">';
         const formEl = submitBtn.parentElement;
         formEl.insertBefore(totpWrap, submitBtn);
         const totpInput = document.getElementById('totp-input');

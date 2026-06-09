@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GodSpeed Chrome Assistant</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="top">
+    <div>
+      <div class="brand">GodSpeed</div>
+      <div id="status" class="status">Checking local workspace...</div>
+    </div>
+    <button id="openApp" class="icon-btn" title="Open GodSpeed">Open</button>
+  </header>
+
+  <main>
+    <section class="panel">
+      <label for="prompt">Ask GodSpeed</label>
+      <textarea id="prompt" rows="5" placeholder="Ask about this page, your selection, or anything else."></textarea>
+      <div class="toolbar">
+        <button id="send" class="primary">Send</button>
+        <button id="stop" class="ghost" disabled>Stop</button>
+        <select id="mode" title="Mode">
+          <option value="chat">Chat</option>
+          <option value="agent">Agent</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="grid">
+      <button data-action="summarize">Summarize Page</button>
+      <button data-action="selection">Explain Selection</button>
+      <button data-action="tasks">Extract Tasks</button>
+      <button data-action="reply">Draft Reply</button>
+      <button data-action="security">Security Review</button>
+      <button data-action="rewrite">Rewrite Clearly</button>
+    </section>
+
+    <section class="panel output-panel">
+      <div class="panel-head">
+        <label>Answer</label>
+        <button id="copyAnswer" class="ghost small">Copy</button>
+      </div>
+      <pre id="answer"></pre>
+    </section>
+
+    <section class="panel compact">
+      <div class="panel-head">
+        <label>Connection</label>
+        <button id="saveSettings" class="ghost small">Save</button>
+      </div>
+      <input id="baseUrl" type="url" spellcheck="false" placeholder="http://127.0.0.1:7860">
+      <input id="apiToken" type="password" spellcheck="false" placeholder="GodSpeed API token">
+      <label class="check"><input id="autoContext" type="checkbox"> Include page context by default</label>
+    </section>
+
+    <section class="panel compact">
+      <div class="panel-head">
+        <label>Recent Chats</label>
+        <button id="refreshSessions" class="ghost small">Refresh</button>
+      </div>
+      <div id="sessions" class="sessions"></div>
+    </section>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -43,3 +43,4 @@ qrcode[pil]
 croniter
 pytest
 pytest-asyncio
+psutil>=5.9.0

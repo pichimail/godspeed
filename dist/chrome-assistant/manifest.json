@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "GodSpeed Chrome Assistant",
+  "short_name": "GodSpeed",
+  "version": "1.0.0",
+  "description": "A Chrome companion for the local GodSpeed AI workspace.",
+  "permissions": [
+    "activeTab",
+    "contextMenus",
+    "notifications",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1/*",
+    "http://127.0.0.1:*/*",
+    "http://localhost/*",
+    "http://localhost:*/*",
+    "http://*/*",
+    "https://*/*"
+  ],
+  "action": {
+    "default_title": "GodSpeed",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "commands": {
+    "open-overlay": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+G",
+        "mac": "Command+Shift+G"
+      },
+      "description": "Open the GodSpeed page assistant"
+    }
+  }
+}
