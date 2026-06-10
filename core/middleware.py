@@ -60,6 +60,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         is_tool_render = path.startswith("/api/tools/") and path.endswith("/render")
         # Visual report pages are self-contained HTML — need inline scripts + external images
         is_report = path.startswith("/api/research/report/")
+        # Legacy tool pages (System Tools, Secure Chat) are loaded inside dashboard modals via iframe.
+        # They have their own standalone CSS/JS and must be framable by the main app (same origin).
+        is_legacy_tool_page = path in ("/static/system-tools.html", "/static/secure-chat.html")
 
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "no-referrer"
@@ -74,10 +77,10 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
                 "connect-src 'self'; "
                 "frame-ancestors 'none'"
             )
-        elif is_tool_render:
-            # Tool iframe content: skip all framing headers — the iframe's
-            # sandbox="allow-scripts" attribute provides isolation.
-            # Don't overwrite the route's own restrictive CSP either.
+        elif is_tool_render or is_legacy_tool_page:
+            # Tool iframe content (including legacy standalone tool pages loaded in dashboard modals):
+            # skip all framing headers. The parent dashboard modal provides the chrome and isolation.
+            # Don't overwrite any page-specific CSP.
             pass
         else:
             response.headers["X-Frame-Options"] = "DENY"
