@@ -1,0 +1,150 @@
+version: '3.8'
+
+# Production stack for Godspeed + WAHA + Caddy (HTTPS)
+# Domain: ai.itsmechinna.com
+#
+# Usage on server:
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Before running:
+# 1. Replace all YOUR_... placeholders below
+# 2. Make sure DNS for ai.itsmechinna.com points to this server IP
+# 3. Run: docker compose -f docker-compose.prod.yml up -d --build
+
+services:
+  caddy:
+    image: caddy:2
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile.prod:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - godspeed
+
+  # Main Godspeed app
+  godspeed:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: godspeed
+    restart: unless-stopped
+    # Do NOT expose 7000 publicly — Caddy handles it
+    # ports:
+    #   - "7000:7000"
+    volumes:
+      - ./data:/app/data:z
+      - ./logs:/app/logs:z
+      - ./data/ssh:/app/.ssh:z
+      - ./data/huggingface:/app/.cache/huggingface:z
+      - ./data/local:/app/.local:z
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      # Core
+      - APP_BIND=0.0.0.0
+      - APP_PORT=7000
+      - AUTH_ENABLED=true
+      - SECURE_COOKIES=true
+      - LOCALHOST_BYPASS=false
+      - ALLOWED_ORIGINS=https://ai.itsmechinna.com,https://www.ai.itsmechinna.com
+
+      # Admin (change these!)
+      - ODYSSEUS_ADMIN_USER=admin
+      - ODYSSEUS_ADMIN_PASSWORD=YOUR_STRONG_ADMIN_PASSWORD_HERE
+
+      # Database (sqlite is fine for start, can switch to postgres later)
+      - DATABASE_URL=sqlite:///./data/app.db
+
+      # Bundled services (internal)
+      - SEARXNG_INSTANCE=http://searxng:8080
+      - CHROMADB_HOST=chromadb
+      - CHROMADB_PORT=8000
+
+      # PUID/PGID (match your host user if you want to edit files from host)
+      - PUID=1000
+      - PGID=1000
+
+      # Optional: LLM / keys (add as needed)
+      # - OPENAI_API_KEY=
+      # - GOOGLE_API_KEY=
+      # - etc.
+
+    depends_on:
+      searxng:
+        condition: service_healthy
+      chromadb:
+        condition: service_started
+    # For WhatsApp bridge config (you will set the rest in the UI or via /api/whatsapp/admin/bridge)
+    # The WA webhook secret is configured in WAHA service below and must match what you put in Godspeed WhatsApp Bridge Settings
+
+  chromadb:
+    image: docker.io/chromadb/chroma:latest
+    container_name: chromadb
+    restart: unless-stopped
+    volumes:
+      - chromadb-data:/chroma/chroma
+    environment:
+      - ANONYMIZED_TELEMETRY=FALSE
+
+  searxng:
+    image: docker.io/searxng/searxng:2026.5.31-7159b8aed
+    container_name: searxng
+    restart: unless-stopped
+    volumes:
+      - ./searxng:/etc/searxng
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -eu
+        if [ ! -s /etc/searxng/settings.yml ] || grep -q '__SEARXNG_SECRET__' /etc/searxng/settings.yml; then
+          secret="$${SEARXNG_SECRET:-}"
+          if [ -z "$$secret" ]; then
+            secret="$$(python -c 'import secrets; print(secrets.token_urlsafe(48))')"
+          fi
+          sed "s|__SEARXNG_SECRET__|$$secret|g" /tmp/searxng-settings.yml.template > /etc/searxng/settings.yml || true
+        fi
+        exec /usr/local/searxng/dockerfiles/docker-entrypoint.sh
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # WAHA - WhatsApp HTTP API bridge
+  waha:
+    image: devlikeapro/waha:latest
+    container_name: waha
+    restart: unless-stopped
+    # We do NOT expose 3000 publicly by default (use Caddy subdomain if you want)
+    # ports:
+    #   - "3000:3000"
+    volumes:
+      - ./waha-sessions:/app/.sessions
+      - ./waha-env:/app/env
+    environment:
+      # === CHANGE THESE BEFORE FIRST RUN ===
+      WAHA_API_KEY: sha512:5befdae227c474b3e72eed67ea44a41874f2678bfaf75c6bbc759ad88afa594d
+      WAHA_DASHBOARD_USERNAME: admin
+      WAHA_DASHBOARD_PASSWORD: REPLACE_WITH_STRONG_PASSWORD
+
+      # === Webhook to Godspeed (internal Docker network) ===
+      # This must match the secret you will configure in Godspeed UI → WhatsApp → Bridge Settings
+      WHATSAPP_HOOK_URL: http://godspeed:7000/api/whatsapp/webhook?secret=7b9c96ba15c8cb53b49917cdca9a339a5e589f998928f869d178ff524565b30f
+      WHATSAPP_HOOK_EVENTS: message
+
+      # Engine choice (NOWEB is usually most reliable)
+      WHATSAPP_DEFAULT_ENGINE: NOWEB
+
+volumes:
+  caddy_data:
+  caddy_config:
+  chromadb-data:
+  waha-sessions:
+  waha-env:

@@ -1,0 +1,23 @@
+# Caddyfile for ai.itsmechinna.com
+# Godspeed on root, with automatic HTTPS
+
+ai.itsmechinna.com {
+    # Reverse proxy to Godspeed container
+    reverse_proxy godspeed:7000 {
+        # Optional: forward real IP
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+
+    # Optional: increase limits for large uploads / AI responses
+    encode gzip
+    # log {
+    #     output file /var/log/caddy/access.log
+    # }
+}
+
+# Optional: expose WAHA dashboard on a subdomain if you want public access
+# waha.ai.itsmechinna.com {
+#     reverse_proxy waha:3000
+# }
