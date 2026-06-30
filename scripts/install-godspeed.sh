@@ -13,15 +13,103 @@ say() {
   printf '\033[1;36m[GodSpeed]\033[0m %s\n' "$*"
 }
 
+warn() {
+  printf '\033[1;33m[GodSpeed]\033[0m %s\n' "$*"
+}
+
+fail() {
+  printf '\033[1;31m[GodSpeed]\033[0m %s\n' "$*" >&2
+  exit 1
+}
+
 need() {
   if ! command -v "$1" >/dev/null 2>&1; then
-    printf 'Missing required command: %s\n' "$1" >&2
-    exit 1
+    fail "Missing required command: $1"
   fi
 }
 
+python_is_supported() {
+  "$1" - <<'PY' >/dev/null 2>&1
+import sys
+raise SystemExit(0 if (3, 11) <= sys.version_info[:2] < (3, 14) else 1)
+PY
+}
+
+python_version() {
+  "$1" - <<'PY'
+import sys
+print(f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
+PY
+}
+
+find_supported_python() {
+  if [ -n "${GODSPEED_PYTHON:-}" ]; then
+    if [ -x "$GODSPEED_PYTHON" ] && python_is_supported "$GODSPEED_PYTHON"; then
+      printf '%s\n' "$GODSPEED_PYTHON"
+      return 0
+    fi
+    fail "GODSPEED_PYTHON must point to Python 3.11, 3.12, or 3.13. Got: $GODSPEED_PYTHON"
+  fi
+
+  local candidates=""
+  if [ "$(uname -s)" = "Darwin" ]; then
+    if [ "$(uname -m)" = "arm64" ]; then
+      candidates="/opt/homebrew/bin/python3.12 /opt/homebrew/bin/python3.11 /opt/homebrew/bin/python3.13 python3.12 python3.11 python3.13"
+    else
+      candidates="/usr/local/bin/python3.12 /usr/local/bin/python3.11 /usr/local/bin/python3.13 python3.12 python3.11 python3.13"
+    fi
+  else
+    candidates="python3.12 python3.11 python3.13 python3"
+  fi
+
+  local cand path
+  for cand in $candidates; do
+    path="$(command -v "$cand" 2>/dev/null || true)"
+    [ -n "$path" ] || continue
+    if python_is_supported "$path"; then
+      printf '%s\n' "$path"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+ensure_macos_python() {
+  if [ "$(uname -s)" != "Darwin" ]; then
+    return 0
+  fi
+
+  if find_supported_python >/dev/null 2>&1; then
+    return 0
+  fi
+
+  if ! command -v brew >/dev/null 2>&1; then
+    cat >&2 <<'EOF'
+
+GodSpeed needs Python 3.11, 3.12, or 3.13 for the native macOS installer.
+Your current python3 is missing or outside that tested range.
+
+Install Homebrew once, then re-run this command:
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+EOF
+    exit 1
+  fi
+
+  say "Installing Homebrew Python 3.12 for a stable native macOS install"
+  brew install python@3.12
+}
+
 need git
-need python3
+ensure_macos_python
+
+PYTHON_BIN="$(find_supported_python || true)"
+if [ -z "$PYTHON_BIN" ]; then
+  fail "Could not find Python 3.11, 3.12, or 3.13. Install one, or pass GODSPEED_PYTHON=/path/to/python3.12."
+fi
+
+say "Using Python $(python_version "$PYTHON_BIN") at $PYTHON_BIN"
 
 mkdir -p "$HOME_DIR"
 
@@ -38,9 +126,26 @@ fi
 cd "$APP_DIR"
 
 say "Preparing Python environment"
-python3 -m venv venv
-venv/bin/python -m pip install --upgrade pip
+if [ -x venv/bin/python ]; then
+  if ! python_is_supported "venv/bin/python"; then
+    warn "Existing venv uses unsupported Python $(python_version venv/bin/python); rebuilding it"
+    rm -rf venv
+  fi
+fi
+
+if [ ! -x venv/bin/python ]; then
+  "$PYTHON_BIN" -m venv venv
+fi
+
+venv/bin/python -m pip install --upgrade pip setuptools wheel
 venv/bin/python -m pip install -r requirements.txt
+
+say "Verifying critical imports"
+venv/bin/python - <<'PY'
+from cryptography.fernet import Fernet
+from services.secure_chat_service import get_secure_chat_service
+print("secure chat import ok")
+PY
 
 say "Running first-time setup"
 ODYSSEUS_SKIP_ADMIN_PROMPT=1 ODYSSEUS_SKIP_RUN_HINT=1 venv/bin/python setup.py
