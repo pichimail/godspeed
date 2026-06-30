@@ -62,23 +62,37 @@ if ! command -v brew >/dev/null 2>&1; then
   exit 1
 fi
 
-# 2. Find a Python 3.11+ to build the environment with.
+python_supported() {
+  "$1" - <<'PY' >/dev/null 2>&1
+import sys
+raise SystemExit(0 if (3, 11) <= sys.version_info[:2] < (3, 14) else 1)
+PY
+}
+
+python_version() {
+  "$1" - <<'PY'
+import sys
+print(f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
+PY
+}
+
+# 2. Find a tested Python to build the environment with.
 #    On Apple Silicon we require an *arm64* interpreter (Homebrew's, under
 #    /opt/homebrew). A universal2 or x86 Python — e.g. the python.org installer
 #    at /usr/local — produces a venv whose compiled extensions get loaded as the
 #    wrong architecture when launched from the .app bundle (Cookbook then dies
 #    with "incompatible architecture"). So on arm64 we only look under
-#    /opt/homebrew and install Homebrew's python@3.11 if it's missing. On Intel
-#    (or non-mac) we just use whatever Python 3.11+ is on PATH.
+#    /opt/homebrew and install Homebrew's python@3.12 if it's missing. On Intel
+#    (or non-mac) we use a tested Python 3.11, 3.12, or 3.13.
 PY=""
 if [ "$(uname -m)" = "arm64" ]; then
-  cands="/opt/homebrew/bin/python3.13 /opt/homebrew/bin/python3.12 /opt/homebrew/bin/python3.11"
+  cands="/opt/homebrew/bin/python3.12 /opt/homebrew/bin/python3.11 /opt/homebrew/bin/python3.13"
 else
-  cands="python3 python3.13 python3.12 python3.11"
+  cands="python3.12 python3.11 python3.13 /usr/local/bin/python3.12 /usr/local/bin/python3.11 /usr/local/bin/python3.13"
 fi
 for cand in $cands; do
   p="$(command -v "$cand" 2>/dev/null)" || continue
-  if "$p" -c 'import sys; raise SystemExit(0 if sys.version_info[:2] >= (3, 11) else 1)' 2>/dev/null; then
+  if python_supported "$p"; then
     PY="$p"; break
   fi
 done
@@ -88,7 +102,7 @@ done
 #    - tmux      : Cookbook runs model downloads/serves in the background
 #    - llama.cpp : a prebuilt, Metal-enabled llama-server so Cookbook can serve
 #                  GGUF models on the GPU with no compile step
-#    - python@3.11 : installed only if no suitable (arm64) Python was found above
+#    - python@3.12 : installed only if no suitable tested Python was found above
 #
 # tmux and llama.cpp are needed only by Cookbook (local model serving), not to
 # boot the core app. So if Homebrew can't install one right now we warn and keep
@@ -113,22 +127,27 @@ echo "▶ Checking dependencies (Homebrew)…"
 if [ -n "$PY" ]; then
   echo "  (using $("$PY" --version 2>&1) at $PY)"
 else
-  echo "  installing python@3.11…"
-  brew install python@3.11 || true
-  PY="$(command -v /opt/homebrew/bin/python3.11 || command -v python3.11 || true)"
+  echo "  installing python@3.12…"
+  brew install python@3.12 || true
+  PY="$(command -v /opt/homebrew/bin/python3.12 || command -v python3.12 || true)"
 fi
 brew_ensure tmux tmux
 brew_ensure llama-server llama.cpp
 
-if [ -z "$PY" ] || [ ! -x "$PY" ]; then
-  echo "✗ Couldn't find a Python 3.11+ to build the environment with."
-  echo "  Check: ls /opt/homebrew/bin/python3*  (or install one: brew install python@3.11)"
+if [ -z "$PY" ] || [ ! -x "$PY" ] || ! python_supported "$PY"; then
+  echo "✗ Couldn't find a tested Python 3.11, 3.12, or 3.13 to build the environment with."
+  echo "  Check: ls /opt/homebrew/bin/python3*  (or install one: brew install python@3.12)"
   exit 1
 fi
 
 # 3. Python environment + dependencies (kept inside the repo, in venv/).
 #    Named `venv` to match the manual steps and build-macos-app.sh, so the
 #    clickable .app reuses this same environment.
+if [ -x venv/bin/python3 ] && ! python_supported "venv/bin/python3"; then
+  echo "▶ Existing venv uses unsupported Python $(python_version venv/bin/python3); rebuilding…"
+  rm -rf venv
+fi
+
 if [ ! -d venv ]; then
   echo "▶ Creating Python environment…"
   "$PY" -m venv venv
@@ -138,13 +157,20 @@ REQ_HASH="$(md5 -q requirements.txt 2>/dev/null || md5sum requirements.txt | cut
 REQ_HASH_FILE="venv/.requirements_hash"
 if [ ! -f "$REQ_HASH_FILE" ] || [ "$REQ_HASH" != "$(cat "$REQ_HASH_FILE" 2>/dev/null)" ]; then
   echo "▶ Installing Python packages (first run downloads a few — can take a few minutes)…"
-  "$VENV_PY" -m pip install --quiet --upgrade pip
+  "$VENV_PY" -m pip install --quiet --upgrade pip setuptools wheel
   # Not --quiet: this is the slow step, so show progress (and any real errors).
   "$VENV_PY" -m pip install -r requirements.txt
   echo "$REQ_HASH" > "$REQ_HASH_FILE"
 else
   echo "▶ Python packages up to date — skipping install"
 fi
+
+echo "▶ Verifying critical imports…"
+"$VENV_PY" - <<'PY'
+from cryptography.fernet import Fernet
+from services.secure_chat_service import get_secure_chat_service
+print("  ✓ secure chat import ok")
+PY
 
 # chromadb-client (HTTP-only) conflicts with the full chromadb package. If
 # it got installed (e.g., from an older requirements-optional.txt), remove
