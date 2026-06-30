@@ -60,6 +60,11 @@ creates a chat-scoped API token for the Chrome assistant, starts the app at
 `http://127.0.0.1:7860`, and writes the extension config into
 `~/.godspeed/app/dist/chrome-assistant/config.js`.
 
+On macOS, the installer automatically uses a tested native Python version
+(`3.11`, `3.12`, or `3.13`) and avoids untested `python3` aliases such as
+Python `3.14`. If Homebrew is available and a tested Python is missing, it
+installs `python@3.12` and rebuilds any incompatible existing venv.
+
 Use these variants when needed:
 
 ```bash
@@ -71,6 +76,9 @@ GODSPEED_PORT=7870 bash <(curl -fsSL -H "Cache-Control: no-cache" https://raw.gi
 
 # Make GodSpeed reachable from another phone/laptop on a trusted LAN or VPN.
 GODSPEED_HOST=0.0.0.0 bash <(curl -fsSL -H "Cache-Control: no-cache" https://raw.githubusercontent.com/pichimail/godspeed/main/scripts/install-godspeed.sh)
+
+# Force a specific tested Python interpreter.
+GODSPEED_PYTHON=/opt/homebrew/bin/python3.12 bash <(curl -fsSL -H "Cache-Control: no-cache" https://raw.githubusercontent.com/pichimail/godspeed/main/scripts/install-godspeed.sh)
 ```
 
 Chrome requires unpacked extensions to be loaded once by the user:
@@ -106,24 +114,13 @@ binds the web UI to `127.0.0.1` by default. If the port is taken, set
 `APP_PORT=7001` in `.env` and recreate the container. Set `APP_BIND=0.0.0.0`
 only when you intentionally want LAN/reverse-proxy access.
 
-### Native Linux / macOS
-```bash
-git clone https://github.com/pichimail/godspeed.git
-cd godspeed
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-python setup.py
-python -m uvicorn app:app --host 127.0.0.1 --port 7000
-```
-Requirements: Python 3.11+. Cookbook also needs `tmux` for background model
-downloads and serves. The app itself is lightweight; local model serving is the
-heavy part and depends on the model, runtime, GPU, and VRAM, so small hosts can
-connect to API or remote model servers instead. Use `--host 0.0.0.0` only when you intentionally want LAN/reverse-proxy access.
+### Native macOS (recommended)
+For most Mac users, use the one-command installer above. It installs Python
+packages automatically, uses a tested Python interpreter, creates or repairs the
+venv, runs setup, starts GodSpeed, and opens the browser.
 
-### Apple Silicon
-Docker on macOS cannot use the Metal GPU. For GPU-accelerated Cookbook on an
-M-series Mac, run GodSpeed natively:
+If you already cloned the repo and want GPU-accelerated Cookbook on an M-series
+Mac, use the native launcher:
 
 ```bash
 git clone https://github.com/pichimail/godspeed.git
@@ -147,6 +144,22 @@ expose this port directly to the public internet. To build a clickable app wrapp
 ```bash
 ./build-macos-app.sh
 ```
+
+### Native Linux / manual install
+```bash
+git clone https://github.com/pichimail/godspeed.git
+cd godspeed
+python3.12 -m venv venv   # or python3.11 / python3.13
+source venv/bin/activate
+python -m pip install --upgrade pip setuptools wheel
+pip install -r requirements.txt
+python setup.py
+python -m uvicorn app:app --host 127.0.0.1 --port 7000
+```
+Requirements: Python `3.11`, `3.12`, or `3.13`. Cookbook also needs `tmux` for background model
+downloads and serves. The app itself is lightweight; local model serving is the
+heavy part and depends on the model, runtime, GPU, and VRAM, so small hosts can
+connect to API or remote model servers instead. Use `--host 0.0.0.0` only when you intentionally want LAN/reverse-proxy access.
 
 <details>
 <summary>Cookbook, GPU, Ollama, and troubleshooting notes</summary>
@@ -478,9 +491,9 @@ MIT -- see [LICENSE](LICENSE) and [ACKNOWLEDGMENTS.md](ACKNOWLEDGMENTS.md).
                  )_)  )_)  )_)   ~|~
                 )___))___))___)\  |
                )____)____)_____)\\|
-             _____|____|____|_____\\\__
+             _____|____|____|_____\\__
              \                       /
-       ~^~^~~^~^~~^~^~~^~^~~^~^~~^~^~~^~^~~^~^~
+       ~^~^~~^~^~~^~^~~^~^~~^~^~~^~^~~^~^~~^~^
                ~^~  all aboard!  ~^~
-       ~^~^~~^~^~~^~^~~^~^~~^~^~~^~^~~^~^~~^~^~
+       ~^~^~~^~^~~^~^~~^~^~~^~^~~^~^~~^~^~~^~^
 ```
