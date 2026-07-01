@@ -7,7 +7,11 @@ HOME_DIR="${GODSPEED_HOME:-$HOME/.godspeed}"
 APP_DIR="$HOME_DIR/app"
 PORT="${GODSPEED_PORT:-7860}"
 HOST="${GODSPEED_HOST:-127.0.0.1}"
-APP_URL="http://$HOST:$PORT"
+URL_HOST="$HOST"
+if [ "$URL_HOST" = "0.0.0.0" ] || [ "$URL_HOST" = "::" ]; then
+  URL_HOST="127.0.0.1"
+fi
+APP_URL="http://$URL_HOST:$PORT"
 
 say() {
   printf '\033[1;36m[GodSpeed]\033[0m %s\n' "$*"
@@ -26,6 +30,22 @@ need() {
   if ! command -v "$1" >/dev/null 2>&1; then
     fail "Missing required command: $1"
   fi
+}
+
+is_port_open() {
+  local host="$1"
+  local port="$2"
+  "$PYTHON_BIN" - "$host" "$port" <<'PY' >/dev/null 2>&1
+import socket
+import sys
+host = sys.argv[1]
+port = int(sys.argv[2])
+try:
+    with socket.create_connection((host, port), timeout=0.5):
+        raise SystemExit(0)
+except OSError:
+    raise SystemExit(1)
+PY
 }
 
 python_is_supported() {
@@ -101,6 +121,77 @@ EOF
   brew install python@3.12
 }
 
+open_url() {
+  if [ "${GODSPEED_NO_OPEN:-}" = "1" ]; then
+    return 0
+  fi
+  if [ "$(uname -s)" = "Darwin" ] && command -v open >/dev/null 2>&1; then
+    open "$APP_URL" >/dev/null 2>&1 || true
+  elif command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$APP_URL" >/dev/null 2>&1 || true
+  elif command -v explorer.exe >/dev/null 2>&1; then
+    explorer.exe "$APP_URL" >/dev/null 2>&1 || true
+  fi
+}
+
+docker_compose() {
+  if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
+    printf 'docker compose\n'
+    return 0
+  fi
+  if command -v docker-compose >/dev/null 2>&1; then
+    printf 'docker-compose\n'
+    return 0
+  fi
+  return 1
+}
+
+ensure_chromadb() {
+  local chroma_host="${CHROMADB_HOST:-localhost}"
+  local chroma_port="${CHROMADB_PORT:-8100}"
+
+  if is_port_open "$chroma_host" "$chroma_port"; then
+    say "ChromaDB already reachable at $chroma_host:$chroma_port"
+    return 0
+  fi
+
+  local compose_cmd
+  compose_cmd="$(docker_compose || true)"
+  if [ -z "$compose_cmd" ]; then
+    warn "Docker is not available; vector memory/RAG will start in degraded mode until ChromaDB is running."
+    warn "Optional later fix: docker compose up -d chromadb"
+    return 0
+  fi
+
+  if ! docker info >/dev/null 2>&1; then
+    warn "Docker is installed but not running; vector memory/RAG will start in degraded mode."
+    return 0
+  fi
+
+  say "Starting bundled ChromaDB vector service"
+  if $compose_cmd up -d chromadb; then
+    export CHROMADB_HOST="${CHROMADB_HOST:-localhost}"
+    export CHROMADB_PORT="${CHROMADB_PORT:-8100}"
+    for _ in $(seq 1 30); do
+      if is_port_open "${CHROMADB_HOST}" "${CHROMADB_PORT}"; then
+        say "ChromaDB ready at ${CHROMADB_HOST}:${CHROMADB_PORT}"
+        return 0
+      fi
+      sleep 1
+    done
+    warn "ChromaDB container was started but is not reachable yet; GodSpeed will retry lazily."
+  else
+    warn "Could not start ChromaDB automatically; GodSpeed will still launch with vector features degraded."
+  fi
+}
+
+warm_optional_browser_mcp() {
+  if command -v npx >/dev/null 2>&1; then
+    say "Preparing optional browser MCP package"
+    npx -y @playwright/mcp@latest --version >/dev/null 2>&1 || warn "Browser MCP pre-cache skipped; app will still launch."
+  fi
+}
+
 need git
 ensure_macos_python
 
@@ -120,6 +211,7 @@ if [ -d "$APP_DIR/.git" ]; then
   git -C "$APP_DIR" pull --ff-only origin "$REPO_BRANCH"
 else
   say "Cloning GodSpeed into $APP_DIR"
+  rm -rf "$APP_DIR"
   git clone --branch "$REPO_BRANCH" "$REPO_URL" "$APP_DIR"
 fi
 
@@ -147,6 +239,9 @@ from services.secure_chat_service import get_secure_chat_service
 print("secure chat import ok")
 PY
 
+ensure_chromadb
+warm_optional_browser_mcp
+
 say "Running first-time setup"
 ODYSSEUS_SKIP_ADMIN_PROMPT=1 ODYSSEUS_SKIP_RUN_HINT=1 venv/bin/python setup.py
 
@@ -154,7 +249,6 @@ say "Creating Chrome assistant token"
 TOKEN="$(
   venv/bin/python - <<'PY'
 import json
-import os
 import secrets
 import uuid
 from pathlib import Path
@@ -204,20 +298,18 @@ EOF
 
 say "Starting GodSpeed at $APP_URL"
 mkdir -p logs
-if command -v lsof >/dev/null 2>&1 && lsof -iTCP:"$PORT" -sTCP:LISTEN >/dev/null 2>&1; then
-  say "Port $PORT is already in use; leaving the existing server alone"
+if is_port_open "$URL_HOST" "$PORT"; then
+  say "Port $PORT is already in use; opening the existing GodSpeed session"
 else
   nohup venv/bin/python -m uvicorn app:app --host "$HOST" --port "$PORT" > logs/godspeed.log 2>&1 &
   printf '%s\n' "$!" > "$HOME_DIR/godspeed.pid"
 fi
 
-if [ "$(uname -s)" = "Darwin" ] && command -v open >/dev/null 2>&1; then
-  open "$APP_URL" >/dev/null 2>&1 || true
-fi
+open_url
 
 cat <<EOF
 
-GodSpeed is installed.
+GodSpeed is installed and launching.
 
 App:
   $APP_URL
@@ -233,5 +325,8 @@ Load it in Chrome:
 
 Logs:
   $APP_DIR/logs/godspeed.log
+
+Stop server:
+  kill \$(cat "$HOME_DIR/godspeed.pid") 2>/dev/null || true
 
 EOF
