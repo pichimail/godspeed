@@ -7,6 +7,7 @@ initial admin user. Safe to re-run (skips what already exists).
 
 import os
 import shutil
+import socket
 import sys
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -25,6 +26,39 @@ DIRS = [
     os.path.join(DATA_DIR, "memory_vectors"),
     os.path.join(BASE_DIR, "logs"),
 ]
+
+
+def check_python_runtime():
+    current = sys.version_info[:2]
+    if (3, 11) <= current < (3, 14):
+        return
+
+    version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    print("\n✗ Unsupported Python runtime for GodSpeed native install")
+    print(f"  Current: Python {version} at {sys.executable}")
+    print("  Required: Python 3.11, 3.12, or 3.13")
+    if sys.platform == "darwin":
+        print("\n  On macOS, run the maintained native installer instead of manual python3 commands:")
+        print("    ./start-macos.sh")
+        print("\n  If you already created a Python 3.14 venv, remove it and rebuild with Homebrew Python 3.12.")
+    raise SystemExit(2)
+
+
+def preferred_run_port():
+    env_port = os.getenv("ODYSSEUS_PORT") or os.getenv("APP_PORT")
+    if env_port:
+        return str(env_port)
+    if sys.platform == "darwin":
+        return "7860"
+    return "7000"
+
+
+def is_port_busy(host: str, port: int) -> bool:
+    try:
+        with socket.create_connection((host, port), timeout=0.3):
+            return True
+    except OSError:
+        return False
 
 
 def create_dirs():
@@ -81,18 +115,14 @@ def create_default_admin():
         import bcrypt
         import json
 
-        # Priority: env vars > interactive prompt > random password
         username = os.getenv("ODYSSEUS_ADMIN_USER", "").strip().lower()
         password = os.getenv("ODYSSEUS_ADMIN_PASSWORD", "").strip()
 
         if username and password:
-            # Both provided via env — use them directly
             pass
         elif sys.stdin.isatty() and not os.getenv("ODYSSEUS_SKIP_ADMIN_PROMPT"):
-            # Interactive terminal — ask the user
             username, password = _prompt_admin_credentials()
         else:
-            # Non-interactive (Docker, CI) — fall back to generated password
             username = username or "admin"
             password = password or __import__("secrets").token_urlsafe(18)
 
@@ -115,7 +145,7 @@ def create_default_admin():
             print(f"  [ok] Initial admin user created ({username})")
             if not os.getenv("ODYSSEUS_ADMIN_PASSWORD"):
                 print(f"        Temporary password: {password}")
-                print(f"        ** Change it after first login. Set ODYSSEUS_ADMIN_PASSWORD to choose your own. **")
+                print("        ** Change it after first login. Set ODYSSEUS_ADMIN_PASSWORD to choose your own. **")
         return "created"
     except ImportError:
         print("  [warn] bcrypt not installed — skipping admin user creation")
@@ -131,7 +161,6 @@ def create_env():
         print("  [skip] .env already exists")
         return
     if os.path.exists(example_path):
-        import shutil
         shutil.copy2(example_path, env_path)
         print("  [ok] .env created from .env.example")
         print("        ** Edit .env with your LLM host and API keys **")
@@ -149,7 +178,7 @@ def check_deps():
             missing.append(mod)
     if missing:
         print(f"\n  [warn] Missing packages: {', '.join(missing)}")
-        print(f"         Run: pip install -r requirements.txt")
+        print("         Run: pip install -r requirements.txt")
     else:
         print("  [ok] All core dependencies installed")
 
@@ -168,6 +197,7 @@ def check_deps():
 
 
 def main():
+    check_python_runtime()
     print("\n=== GodSpeed Setup ===\n")
 
     print("1. Creating directories...")
@@ -197,14 +227,18 @@ def main():
         admin_status = "failed"
 
     print("\n=== Setup complete ===")
-    # start-macos.sh launches the server itself (on its own port) right after
-    # this, so suppress the manual hint there to avoid a contradictory URL.
     if not os.getenv("ODYSSEUS_SKIP_RUN_HINT"):
-        print(f"\nStart the server with:")
-        print(f"  python -m uvicorn app:app --host 127.0.0.1 --port 7000")
-        print(f"\nThen open http://localhost:7000")
+        port = preferred_run_port()
+        host = os.getenv("ODYSSEUS_HOST") or os.getenv("APP_BIND") or "127.0.0.1"
+        print("\nStart the server with:")
+        print(f"  python -m uvicorn app:app --host {host} --port {port}")
+        print(f"\nThen open http://localhost:{port}")
+        if host in {"127.0.0.1", "localhost"} and port.isdigit() and is_port_busy("127.0.0.1", int(port)):
+            alt_port = "7861" if port == "7860" else "7860"
+            print(f"\n  [warn] Port {port} is already in use on 127.0.0.1.")
+            print("         Run this instead:")
+            print(f"           python -m uvicorn app:app --host 127.0.0.1 --port {alt_port}")
 
-    # Cleaned, action-focused final instruction strings
     if admin_status == "created":
         print("Login with your admin credentials.\n")
     elif admin_status == "exists":
@@ -213,7 +247,7 @@ def main():
         print("Admin creation did not happen: dependencies are missing.\nRun 'pip install bcrypt' and rerun setup.\n")
     elif admin_status == "failed":
         print("Admin creation did not happen: a system or file error occurred.\nCheck write permissions for the 'data' directory and rerun setup.\n")
-    else:  # handling "failed" or any unhandled edge case
+    else:
         print("Admin creation did not happen: a system or file error occurred.\nCheck write permissions for the 'data' directory and rerun setup.\n")
 
 
